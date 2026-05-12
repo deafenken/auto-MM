@@ -7,6 +7,10 @@
 *Just tell Claude Code or Codex:* **`刷数模`** *or* **`auto mm`**
 *→ pick A/B/C/D → formalize → solve → write LaTeX → packaged `submit.zip`.*
 
+<!-- Drop a 1254x1254 PNG at docs/hero.png to enable the banner. Prompt: see docs/hero-prompt.md.
+<a href="docs/hero.png"><img src="docs/hero.png" alt="auto-mm: drop a problem PDF, get a paper — 72-96h, resume-safe, anonymity-gated" width="720"/></a>
+-->
+
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](#)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?logo=python&logoColor=white)](#)
 [![LaTeX](https://img.shields.io/badge/LaTeX-XeLaTeX-008080.svg?logo=latex&logoColor=white)](#)
@@ -14,7 +18,6 @@
 [![Codex](https://img.shields.io/badge/Codex-Compatible-10A37F.svg?logo=openai&logoColor=white)](#)
 [![Skills](https://img.shields.io/badge/Skills-5-8A2BE2.svg)](auto-mm/SKILL.md)
 [![Contests](https://img.shields.io/badge/Contests-MCM%20%C2%B7%20ICM%20%C2%B7%20CUMCM-FF6B35.svg)](#)
-[![Codex Audit](https://img.shields.io/badge/Codex%20Audit-22%2F22%20Resolved-2EA44F.svg)](audit/codex-review-2026-05-12.md)
 
 </div>
 
@@ -136,8 +139,6 @@ nohup bash auto-mm/assets/supervisor.sh <run_slug> > supervisor.log 2>&1 &
 9. **Abstract carries hard numbers.** ≥5 unique numeric tokens, every one traceable to `validation.md` or `sensitivity.md`. The phrase "good results" is rejected.
 10. **Submission package hygiene.** No `._*`, `.DS_Store`, `~$*`, `__pycache__/` in the zip; decompresses cleanly.
 
-External [Codex audit](audit/codex-review-2026-05-12.md) verified all 10 are wired to enforceable gates.
-
 ---
 
 <details>
@@ -234,7 +235,7 @@ auto-mm-triage/                   # Stage 0
 auto-mm-modeling/                 # Stage 1
 auto-mm-solving/                  # Stage 2 (+ figure_style.py + figure-* workflow refs)
 auto-mm-writing/                  # Stage 3 (+ EasyMCM2 scaffold + anonymity_scan.py + build.sh)
-audit/codex-review-2026-05-12.md  # external code audit (22 findings, all resolved)
+docs/hero-prompt.md               # prompt for generating the README banner; drop hero.png here
 README.md  README.zh-CN.md
 CLAUDE.md                         # editor notes for Claude Code
 ```
@@ -251,7 +252,6 @@ Each skill folder has `SKILL.md` (workflow), `references/` (load-on-demand specs
 - The skill **never modifies** `assumptions.md` after Stage 1 commits — once locked, only the user edits.
 - Contest data lives under `runs/<run_slug>/inputs/` and is `.gitignored`. Never commit.
 - The author's past 数模 retrospective (a private document) was distilled into [`auto-mm-modeling/references/pitfalls-from-experience.md`](auto-mm-modeling/references/pitfalls-from-experience.md) — 14 named anti-patterns from real contest experience.
-- Detailed external review in [`audit/codex-review-2026-05-12.md`](audit/codex-review-2026-05-12.md). Every finding was resolved before the public release.
 
 </details>
 

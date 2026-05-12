@@ -7,6 +7,10 @@
 *在 Claude Code 或 Codex 里说：* **`刷数模`** *或者* **`auto mm`**
 *→ 选 A/B/C/D → 形式化建模 → 求解 → 写 LaTeX → 打包好的 `submit.zip`。*
 
+<!-- 把一张 1254x1254 PNG 放到 docs/hero.png 就能开启横幅。生成 prompt：docs/hero-prompt.md。
+<a href="docs/hero.png"><img src="docs/hero.png" alt="auto-mm: 丢一份题面 PDF，拿一篇论文 — 72-96 小时、断点续跑、匿名性硬关卡" width="720"/></a>
+-->
+
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](#)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?logo=python&logoColor=white)](#)
 [![LaTeX](https://img.shields.io/badge/LaTeX-XeLaTeX-008080.svg?logo=latex&logoColor=white)](#)
@@ -14,7 +18,6 @@
 [![Codex](https://img.shields.io/badge/Codex-Compatible-10A37F.svg?logo=openai&logoColor=white)](#)
 [![Skills](https://img.shields.io/badge/Skills-5-8A2BE2.svg)](auto-mm/SKILL.md)
 [![Contests](https://img.shields.io/badge/赛事-MCM%20%C2%B7%20ICM%20%C2%B7%20CUMCM-FF6B35.svg)](#)
-[![Codex Audit](https://img.shields.io/badge/Codex%20%E5%AE%A1%E6%9F%A5-22%2F22%20%E5%85%A8%E4%BF%AE-2EA44F.svg)](audit/codex-review-2026-05-12.md)
 
 </div>
 
@@ -136,8 +139,6 @@ nohup bash auto-mm/assets/supervisor.sh <run_slug> > supervisor.log 2>&1 &
 9. **摘要必须有硬数字**。至少 5 个可数验的数字，每个都能在 `validation.md` 或 `sensitivity.md` 找到。"我们取得了较好的结果"被拒。
 10. **提交包卫生**。zip 里没有 `._*`、`.DS_Store`、`~$*`、`__pycache__/`；能干净解压。
 
-外部 [Codex 审查](audit/codex-review-2026-05-12.md) 验证 10 条都接到了可执行的 gate 上。
-
 ---
 
 <details>
@@ -234,7 +235,7 @@ auto-mm-triage/                   # Stage 0
 auto-mm-modeling/                 # Stage 1
 auto-mm-solving/                  # Stage 2（+ figure_style.py + figure-* workflow refs）
 auto-mm-writing/                  # Stage 3（+ EasyMCM2 scaffold + anonymity_scan.py + build.sh）
-audit/codex-review-2026-05-12.md  # 外部代码审查（22 项，全修）
+docs/hero-prompt.md               # README 横幅图的生成提示词；图丢这里就生效
 README.md  README.zh-CN.md
 CLAUDE.md                         # 给 Claude Code 维护者看的 notes
 ```
@@ -251,7 +252,6 @@ CLAUDE.md                         # 给 Claude Code 维护者看的 notes
 - Skill **不会在 Stage 1 commit 之后改 `assumptions.md`** —— 一旦锁定，只有用户能改。
 - 比赛数据在 `runs/<run_slug>/inputs/` 下，`.gitignore` 排除。永远别 commit。
 - 作者过往的一次数模复盘（私有文档）已经蒸馏到 [`auto-mm-modeling/references/pitfalls-from-experience.md`](auto-mm-modeling/references/pitfalls-from-experience.md) —— 14 条来自真实赛事的具名 anti-pattern。
-- 详细外部审查在 [`audit/codex-review-2026-05-12.md`](audit/codex-review-2026-05-12.md)。每条发现都已在发布前解决。
 
 </details>
 
