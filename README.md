@@ -7,9 +7,7 @@
 *Just tell Claude Code or Codex:* **`刷数模`** *or* **`auto mm`**
 *→ pick A/B/C/D → formalize → solve → write LaTeX → packaged `submit.zip`.*
 
-<!-- Drop a 1254x1254 PNG at docs/hero.png to enable the banner. Prompt: see docs/hero-prompt.md.
 <a href="docs/hero.png"><img src="docs/hero.png" alt="auto-mm: drop a problem PDF, get a paper — 72-96h, resume-safe, anonymity-gated" width="720"/></a>
--->
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](#)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?logo=python&logoColor=white)](#)

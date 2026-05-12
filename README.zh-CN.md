@@ -7,9 +7,7 @@
 *在 Claude Code 或 Codex 里说：* **`刷数模`** *或者* **`auto mm`**
 *→ 选 A/B/C/D → 形式化建模 → 求解 → 写 LaTeX → 打包好的 `submit.zip`。*
 
-<!-- 把一张 1254x1254 PNG 放到 docs/hero.png 就能开启横幅。生成 prompt：docs/hero-prompt.md。
 <a href="docs/hero.png"><img src="docs/hero.png" alt="auto-mm: 丢一份题面 PDF，拿一篇论文 — 72-96 小时、断点续跑、匿名性硬关卡" width="720"/></a>
--->
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](#)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB.svg?logo=python&logoColor=white)](#)
