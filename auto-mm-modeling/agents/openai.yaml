@@ -1,0 +1,22 @@
+name: auto-mm-modeling
+display_name: Auto-MM Modeling (Stage 1)
+description: |
+  Stage 1 of auto-mm. Decomposes the chosen problem into sub-questions
+  Q1..Qk with explicit I/O and constraints; writes a numbered assumption
+  list with justification; builds a consolidated notation table; evaluates
+  2-4 candidate model families; commits to one formal model in model.md.
+  Enforces problem-statement-first (Rule 1), real-citations-only (Rule 3),
+  AI-must-address-uncertainty (Rule 4), and algorithm-justified-by-structure
+  (Rule 5). Refuses to hand off until every formula references the notation
+  table.
+triggers:
+  - "auto-mm-modeling"
+  - "建模"
+  - "modeling"
+inputs:
+  - name: run_slug
+    description: run slug with chosen_problem committed
+    required: true
+outputs:
+  - runs/<run_slug>/stage1_modeling/model.md
+  - runs/<run_slug>/stage1_modeling/hand_off.md

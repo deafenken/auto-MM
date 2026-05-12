@@ -1,0 +1,34 @@
+name: auto-mm
+display_name: Auto-MM Orchestrator
+description: |
+  Fully-autonomous mathematical-modeling contest pipeline. Asks the user
+  which contest (MCM/ICM 美赛 or CUMCM 国赛 or other) and the deadline,
+  then sequences four sub-skills: triage (pick A/B/C/D), modeling (formal
+  model + assumptions + notation), solving (code + baseline + ablation +
+  sensitivity + figures), writing (LaTeX paper + anonymity check +
+  submission zip). Enforces 10 non-negotiable integrity rules and a
+  per-stage time budget. State lives on disk under runs/<run_slug>/ so
+  the run survives crashes across 72-96 hours. Pair with assets/
+  supervisor.sh for unattended operation.
+triggers:
+  - "刷数模"
+  - "auto mm"
+  - "auto-mm"
+  - "数模比赛"
+  - "MCM"
+  - "ICM"
+  - "国赛"
+  - "美赛"
+  - "继续刷"
+  - "resume mm"
+inputs:
+  - name: contest
+    description: MCM | ICM | CUMCM | other
+    required: false
+  - name: deadline
+    description: contest deadline (ISO-8601, local timezone OK)
+    required: false
+outputs:
+  - runs/<run_slug>/stage3_writing/submission/submit.zip
+  - runs/<run_slug>/stage3_writing/paper/main.pdf
+  - runs/<run_slug>/.heartbeat

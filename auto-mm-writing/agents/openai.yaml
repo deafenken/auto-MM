@@ -1,0 +1,22 @@
+name: auto-mm-writing
+display_name: Auto-MM Writing (Stage 3)
+description: |
+  Stage 3 of auto-mm. Copies the contest template (MCM EasyMCM2 or
+  CUMCM 高教社) into stage3_writing/paper/, fills the section files
+  from upstream stages, iterates the abstract three times (hard
+  numbers per Rule 9), builds with xelatex twice, runs the
+  anonymity scan (Rule 2 blocking), checks orphan figures (Rule 8),
+  and packages submit.zip with macOS metadata filtered out.
+  Refuses to ship if anonymity or the integrity gate fail.
+triggers:
+  - "auto-mm-writing"
+  - "论文"
+  - "writing"
+inputs:
+  - name: run_slug
+    description: run slug with stage2_solving hand_off written
+    required: true
+outputs:
+  - runs/<run_slug>/stage3_writing/paper/main.pdf
+  - runs/<run_slug>/stage3_writing/submission/submit.zip
+  - runs/<run_slug>/stage3_writing/hand_off.md

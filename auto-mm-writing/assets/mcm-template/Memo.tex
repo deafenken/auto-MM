@@ -1,0 +1,63 @@
+% Memo to DWTS Producers (1-2 pages as required by problem statement)
+
+\begin{letter}{Memo to DWTS Producers}
+\label{sec:memo}
+
+\begin{center}
+\rule{0.9\textwidth}{1.5pt}\\[0.2cm]
+{\Large\bfseries MEMORANDUM}\\[0.2cm]
+\rule{0.9\textwidth}{1.5pt}
+\end{center}
+
+\vspace{0.2cm}
+
+\noindent
+\begin{tabular}{@{}ll}
+\textbf{TO:} & Executive Producers, \textit{Dancing with the Stars} \\
+\textbf{FROM:} & Team \#2603956, MCM Data Analysis Group \\
+\textbf{DATE:} & February 2026 \\
+\textbf{RE:} & Recommendations on Combining Judge Scores and Fan Votes \\
+\end{tabular}
+
+\vspace{0.3cm}
+
+\subsection*{Executive Summary}
+We analyzed 34 seasons of DWTS data to address: \textbf{how should judge scores and fan votes be combined to produce fair and engaging outcomes?} Our analysis reconstructs hidden fan vote shares, compares aggregation rules, and examines controversial cases (Bobby Bones in Season~27). We recommend a hybrid policy balancing audience engagement with technical credibility.
+
+\subsection*{Key Findings}
+\begin{enumerate}
+\setlength{\itemsep}{0.3ex}
+    \item \textbf{Fan votes can be reliably inferred.} Using elimination-consistency constraints, we reconstructed weekly fan vote shares that reproduce 91\% of historical eliminations.
+    \item \textbf{The percentage rule better reflects audience preference.} When the two rules disagree, percentage more often retains contestants with higher fan support.
+    \item \textbf{Judge-save reduces controversy but shifts power.} Introducing judge-selected elimination prevents outcomes like Bobby Bones' victory, but transfers significant influence to judges.
+    \item \textbf{Judges and fans weight attributes differently.} Judges emphasize progress and partner skill; fans respond more to popularity and celebrity identity.
+\end{enumerate}
+
+\subsection*{Recommendations}
+\begin{enumerate}
+\setlength{\itemsep}{0.3ex}
+    \item[\textbf{R1.}] \textbf{Adopt a hybrid aggregation policy.}
+    Use \textit{percentage-based} aggregation in early weeks (Weeks~1--6) to maximize audience engagement. Switch to \textit{judge-selected bottom-three elimination} at mid-season (Week~7 onward) to ensure technical quality influences final placements.
+
+    \item[\textbf{R2.}] \textbf{Monitor fan--judge divergence in real time.} Large divergences (top-3 fan support but bottom-3 judge ranking) are early warning signs of potential controversy.
+
+    \item[\textbf{R3.}] \textbf{Use transparency strategically.} Highlight ``divergence weeks'' to enhance narrative tension while maintaining trust.
+\end{enumerate}
+
+\subsection*{Why This Approach Works}
+\begin{itemize}
+\setlength{\itemsep}{0.2ex}
+    \item \textbf{Audience satisfaction:} Fans see their votes matter early; late outcomes reflect both popularity and skill.
+    \item \textbf{Technical credibility:} Avoids outcomes where low-scoring contestants win (Season~27).
+    \item \textbf{Production simplicity:} Fits existing scoring infrastructure---no new voting technology required.
+    \item \textbf{Narrative value:} Divergence between fans and judges creates natural storylines that can be highlighted rather than hidden.
+\end{itemize}
+
+\subsection*{Implementation Considerations}
+The hybrid policy can be implemented immediately within the existing production framework. Early-season percentage aggregation requires no changes to current voting infrastructure. The mid-season transition to judge-selected elimination mirrors the existing dance-off format, where judges already make subjective decisions. We recommend announcing the rule structure at the season premiere to set viewer expectations and enhance transparency. Real-time divergence monitoring can be achieved using the same data pipelines that currently track votes and scores.
+
+\vspace{0.2cm}
+\noindent\textit{Respectfully submitted,}\\
+\textbf{Team \#2603956}
+
+\end{letter}

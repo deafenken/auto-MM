@@ -1,0 +1,20 @@
+name: auto-mm-triage
+display_name: Auto-MM Triage (Stage 0)
+description: |
+  Stage 0 of auto-mm. Indexes the problem PDFs, recons attachment data,
+  scores every candidate problem on a 5-axis rubric (data sufficiency,
+  method fit, risk, differentiator, team familiarity), and waits for the
+  user to lock in a single problem. After lock-in, renames the run
+  directory and writes the hand-off for the modeling stage. Never picks
+  a problem without explicit user approval.
+triggers:
+  - "auto-mm-triage"
+  - "选题"
+  - "triage"
+inputs:
+  - name: run_slug
+    description: provisional run slug (e.g. mcm-2026-untriaged)
+    required: true
+outputs:
+  - runs/<run_slug>/stage0_triage/problem_choice.md
+  - runs/<run_slug>/stage0_triage/hand_off.md

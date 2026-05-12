@@ -1,0 +1,48 @@
+# macOS metadata
+.DS_Store
+._*
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# Python build & caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# LaTeX build intermediates (kept inside auto-mm-writing/assets/*/ for
+# editing the template, but never in actual runs)
+*.aux
+*.log
+*.out
+*.toc
+*.bbl
+*.blg
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+_minted-*/
+
+# Skill runtime state — NEVER commit experiment data
+runs/
+
+# Word / temp
+~$*
+
+# Local secrets
+.env
+*.local
+
+# Original archive that was unpacked into auto-mm-writing/assets/mcm-template/
+Template.zip

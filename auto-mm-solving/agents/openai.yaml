@@ -1,0 +1,24 @@
+name: auto-mm-solving
+display_name: Auto-MM Solving (Stage 2)
+description: |
+  Stage 2 of auto-mm. Implements the formal model from
+  stage1_modeling/model.md as runnable code (Python primary), runs the
+  required experiment matrix (baseline + main + small-instance exact Gap
+  + ≥1 ablation + sensitivity sweeps), and produces publication-quality
+  PDF-vector figures. Enforces Rule 6 (validation is part of the
+  deliverable) and Rule 8 (figures are evidence, not decoration). Records
+  every experiment under stage2_solving/runs/<exp_id>/result.json so
+  Stage 3 can quote headline numbers without rerunning.
+triggers:
+  - "auto-mm-solving"
+  - "求解"
+  - "solving"
+inputs:
+  - name: run_slug
+    description: run slug with model committed
+    required: true
+outputs:
+  - runs/<run_slug>/stage2_solving/validation.md
+  - runs/<run_slug>/stage2_solving/sensitivity.md
+  - runs/<run_slug>/stage2_solving/figures/
+  - runs/<run_slug>/stage2_solving/hand_off.md
