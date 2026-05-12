@@ -12,7 +12,7 @@ Implication for editing: the "code" here is prompts, workflow contracts, a LaTeX
 
 ```
 auto-mm              ← orchestrator (Stage 0..3 driver, integrity gate, resume protocol)
-  ├─ auto-mm-triage      ← Stage 0: pick A/B/C/D after data recon + 5-axis scoring
+  ├─ auto-mm-triage      ← Stage 0: pick A/B/C/D after data recon + 6-axis scoring (incl. skill leverage)
   ├─ auto-mm-modeling    ← Stage 1: assumptions + notation + formal model + verified citations
   ├─ auto-mm-solving     ← Stage 2: code, baseline, exact-Gap, ablation, sensitivity, figures
   └─ auto-mm-writing     ← Stage 3: LaTeX paper, anonymity scan, submit.zip

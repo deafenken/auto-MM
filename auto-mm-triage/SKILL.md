@@ -3,9 +3,11 @@ name: auto-mm-triage
 description: >-
   Stage 0 of auto-mm. Indexes the problem PDFs in inputs/problems/, summarizes
   each (A/B/C/D), recons the attachment data in inputs/data/, scores every
-  candidate problem against a 5-axis rubric (data sufficiency, method fit, risk,
-  differentiator, team familiarity), and either recommends a single problem or
-  presents a ranked shortlist for the user to lock in. Once a problem is
+  candidate problem against a 6-axis rubric (data sufficiency, method fit, risk,
+  differentiator, team familiarity, skill leverage — the auto-mm-specific
+  edge), and either recommends a single problem or presents a ranked shortlist
+  for the user to lock in. Tie-breaker prefers the higher-skill-leverage problem
+  so the run lands where this skill suite has the best shot at an award. Once a problem is
   committed, renames the run directory from <contest>-<year>-untriaged to
   <contest>-<year>-<problem> and writes the hand-off for the modeling stage.
   Never picks a problem the user hasn't approved — the final commitment is
@@ -38,7 +40,7 @@ runs/<run_slug>/stage0_triage/
 ├── contest_brief.md           # current-year contest facts (page limit, AI report rule, etc.)
 ├── problems_index.md          # one-paragraph summary per candidate problem
 ├── data_recon.md              # what's in inputs/data/: files, row counts, fields, units, oddities
-├── selection_scorecard.md     # the 5-axis rubric scored per problem
+├── selection_scorecard.md     # the 6-axis rubric scored per problem
 ├── problem_choice.md          # CHOSEN problem + 3-paragraph rationale + lock-in checklist
 └── hand_off.md
 ```
@@ -98,7 +100,7 @@ Also write a one-line summary linking each problem to the data it depends on (e.
 
 ### 4. Score every problem
 
-Use the 5-axis rubric from `references/problem-selection-rubric.md`:
+Use the 6-axis rubric from `references/problem-selection-rubric.md`. The 6th axis — **Skill leverage** — is the auto-mm-specific edge: does this skill suite's machinery (model-zoo recipes, integrity gates, figure pipeline, EasyMCM2 scaffold) give a meaningful advantage on this problem? Full evaluation guide in `references/skill-leverage-rubric.md` with a per-sub-skill worksheet.
 
 | Axis | Score | Notes |
 |---|---|---|
@@ -107,8 +109,9 @@ Use the 5-axis rubric from `references/problem-selection-rubric.md`:
 | Risk | -2..+2 | Ambiguity, edge cases, "trap" sub-questions, novel jargon? |
 | Differentiator | -2..+2 | Is there room for a non-obvious technique (attention, MILP+ALNS, Bayesian update) that judges value? |
 | Team familiarity | -2..+2 | Does the user have prior context in this domain? Ask if uncertain. |
+| **Skill leverage** | -2..+2 | Does the auto-mm machinery (recipes + gates + figure pipeline + writing template) carry weight on this problem? Use `skill-leverage-rubric.md`. |
 
-Sum the axis scores. Tie-break by `risk` (lower-risk wins).
+Sum the axis scores. Tie-break order: **higher Skill-leverage** → higher Risk → higher Data sufficiency → ask user.
 
 Write `selection_scorecard.md`:
 
@@ -122,13 +125,19 @@ Write `selection_scorecard.md`:
 | Risk | -1 | 0 | +1 | -2 |
 | Differentiator | +1 | +1 | +1 | +2 |
 | Team familiarity | 0 | -1 | +1 | 0 |
-| **Total** | +2 | -1 | +7 | 0 |
+| Skill leverage | 0 | -1 | +2 | -1 |
+| **Total** | +2 | -2 | +9 | -1 |
 
 ## Reasoning per problem
 ### A — total +2
-<short paragraphs, axis by axis>
+<short paragraphs, axis by axis. Skill-leverage paragraph names the
+specific auto-mm asset(s) that earn the score: e.g. "model-zoo's
+MILP+ALNS recipe + ALNS scaffold + route-map figure channel = +1",
+or "no asset specifically targets this problem's PDE structure = -1".>
 ...
 ```
+
+The Skill-leverage column is the orchestrator's voice in the room — it's the answer to "where will this skill suite actually win us an award." If two problems are within ±1 on Total, the higher Skill-leverage problem wins by tiebreaker.
 
 ### 5. Recommend, then ask the user to lock in
 
@@ -137,12 +146,22 @@ The agent **recommends**, the user **locks in**. Do not commit to a problem unil
 Print:
 
 ```
-Triage done. Scored 4 problems on the 5-axis rubric.
+Triage done. Scored 4 problems on the 6-axis rubric (5 fit-axes + Skill leverage).
 
-  C: +7  (recommended — data fully shipped, optimization-friendly, light ML upside)
+  C: +9  (recommended — fits the auto-mm skill suite best; high leverage)
   A: +2
   D:  0
-  B: -1
+  B: -2
+
+Why C wins by Skill leverage:
+  <one paragraph naming the specific auto-mm asset(s) that earn the +2 here.
+   e.g. "Problem C is an inverse-recovery problem (infer latent fan votes
+   from observed eliminations). auto-mm-modeling/references/model-zoo.md
+   has an explicit inverse-optimization recipe; auto-mm-solving's small-
+   instance recovery validation maps directly to the cross-week stability
+   diagnostic; the attention-mechanism interpretability recipe handles
+   Task 3's feature-attribution sub-question. Three sub-skills carry real
+   weight here — exactly the contour where auto-mm earns awards.">
 
 Top reasons for C: <one line per axis where C scored ≥ +1>
 Top risks for C:   <one line per axis where C scored ≤ -1, or "no major risks">
@@ -153,6 +172,8 @@ Reply with one of:
   "more on <letter>" — print the full scorecard reasoning for that problem
   "discuss"     — print my full thinking, then ask again
 ```
+
+The Skill-leverage justification paragraph is **mandatory** — it forces the agent to name a concrete asset rather than handwave "this fits us well." If you cannot name an asset, the score is likely too high; re-evaluate.
 
 Wait. Do not modify any state until the user replies. If 30 minutes pass with no reply (and we are not yet in lockdown), re-print the recommendation but still wait.
 
@@ -237,7 +258,8 @@ If `stage0_triage/problem_choice.md` already exists when this skill runs:
 
 | File | Load when |
 |---|---|
-| `references/problem-selection-rubric.md` | Step 4 — scoring each problem |
+| `references/problem-selection-rubric.md` | Step 4 — scoring each problem on the 6 axes |
+| `references/skill-leverage-rubric.md` | Step 4 — scoring axis 6 with the per-sub-skill worksheet |
 | `references/data-recon-checklist.md` | Step 3 — what to extract from each data file |
 | `references/contest-typology.md` | Step 2 — recognizing the task type from the problem statement |
 | `auto-mm/references/state-contract.md` | Writing any output file |

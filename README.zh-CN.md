@@ -22,7 +22,7 @@
 ```mermaid
 flowchart LR
     U(["👤 你"]) -->|"<b>auto mm</b><br/>+ 比赛 / 截止 / 题面 PDF"| O{{"🎯 总调度<br/>默认 resume<br/>10 条完整性规则"}}
-    O --> S0["📂 Stage 0<br/>选题<br/><i>五轴打分<br/>锁定 A/B/C/D</i>"]
+    O --> S0["📂 Stage 0<br/>选题<br/><i>六轴打分<br/>含 skill-leverage<br/>锁定 A/B/C/D</i>"]
     S0 --> S1["📐 Stage 1<br/>建模<br/><i>假设 + 符号表<br/>+ 候选模型择一</i>"]
     S1 --> S2["🧪 Stage 2<br/>求解<br/><i>基线 + 精确 Gap<br/>+ 消融 + 灵敏度</i>"]
     S2 --> S3["📄 Stage 3<br/>论文<br/><i>LaTeX + 摘要三轮<br/>+ 匿名扫描</i>"]
@@ -43,7 +43,7 @@ flowchart LR
 
 ## ✨ 它能做什么
 
-把数模比赛的题面 PDF 丢进去。五个分阶段的 Claude / Codex agent 会先问你比赛类型（美赛 MCM/ICM、国赛 CUMCM、或其他），收齐 deadline 和队伍信息，然后跑：**通读 A/B/C/D 题面 → 五轴打分 → 锁定一题 → 形式化建模（假设、符号、候选模型）→ 写代码跑基线 + 小算例精确解 Gap + 消融 + 灵敏度扫描 → 填 LaTeX 模板 → 摘要三轮迭代直到每个数字都可追溯 → 跑匿名扫描，发现作者/学校/路径泄露就阻断 → 打包 `submit.zip`。** 你上传。Skill 永远不会自动提交。
+把数模比赛的题面 PDF 丢进去。五个分阶段的 Claude / Codex agent 会先问你比赛类型（美赛 MCM/ICM、国赛 CUMCM、或其他），收齐 deadline 和队伍信息，然后跑：**通读 A/B/C/D 题面 → 六轴打分（第 6 轴 skill-leverage 把选择推向这套 skill 最擅长、最容易拿奖的题）→ 锁定一题 → 形式化建模（假设、符号、候选模型）→ 写代码跑基线 + 小算例精确解 Gap + 消融 + 灵敏度扫描 → 填 LaTeX 模板 → 摘要三轮迭代直到每个数字都可追溯 → 跑匿名扫描，发现作者/学校/路径泄露就阻断 → 打包 `submit.zip`。** 你上传。Skill 永远不会自动提交。
 
 **目标**：把 72-96 小时变成一篇能defended 的论文，而不是赶出来的一沓。**最终提交**：永远是你的决定。
 
@@ -68,7 +68,7 @@ cp -r auto-mm auto-mm-triage auto-mm-modeling \
 | Skill | 角色 | 读 | 写 |
 |---|---|---|---|
 | 🎯 [`auto-mm`](auto-mm/SKILL.md) | 总调度（路由 + 完整性门禁 + 时间预算，自己不建模） | `run.yaml`，所有 stage 的 `hand_off.md` | `.heartbeat`，`progress.jsonl` |
-| 📂 [`auto-mm-triage`](auto-mm-triage/SKILL.md) | Stage 0：索引题面、侦察附件数据、五轴打分、锁定 A/B/C/D | `inputs/problems/`、`inputs/data/` | `problem_choice.md`、`data_recon.md`、`selection_scorecard.md` |
+| 📂 [`auto-mm-triage`](auto-mm-triage/SKILL.md) | Stage 0：索引题面、侦察附件数据、六轴打分（含 **skill leverage**：选最容易拿奖的题）、锁定 A/B/C/D | `inputs/problems/`、`inputs/data/` | `problem_choice.md`、`data_recon.md`、`selection_scorecard.md` |
 | 📐 [`auto-mm-modeling`](auto-mm-modeling/SKILL.md) | Stage 1：假设、符号、2-4 个候选、择一形式化 + 真 citation | `inputs/problems/<X>.pdf`、`data_recon.md` | `model.md`、`notation.md`、`assumptions.md`、`literature.md` |
 | 🧪 [`auto-mm-solving`](auto-mm-solving/SKILL.md) | Stage 2：pipeline.py + 基线 + 精确 Gap + 消融 + 灵敏度 + 图（`brief → prompt → generate → self-check`） | `model.md`、`inputs/data/` | `pipeline.py`、`validation.md`、`sensitivity.md`、`figures/<fig_id>/` |
 | 📄 [`auto-mm-writing`](auto-mm-writing/SKILL.md) | Stage 3：拷模板、填章节、摘要三轮迭代、匿名扫描、打包 `submit.zip` | 所有上游 `hand_off.md` 和产物 | `paper/main.pdf`、`submission/submit.zip`、`anonymity_report.json` |

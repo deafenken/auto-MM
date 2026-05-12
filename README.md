@@ -22,7 +22,7 @@
 ```mermaid
 flowchart LR
     U(["👤 You"]) -->|"<b>auto mm</b><br/>+ contest, deadline, PDFs"| O{{"🎯 Orchestrator<br/>resume-by-default<br/>10 integrity rules"}}
-    O --> S0["📂 Stage 0<br/>Triage<br/><i>5-axis scoring<br/>pick A/B/C/D</i>"]
+    O --> S0["📂 Stage 0<br/>Triage<br/><i>6-axis scoring<br/>incl. skill leverage<br/>pick A/B/C/D</i>"]
     S0 --> S1["📐 Stage 1<br/>Modeling<br/><i>assumptions + notation<br/>+ candidate model picks</i>"]
     S1 --> S2["🧪 Stage 2<br/>Solving<br/><i>baseline + exact-Gap<br/>+ ablation + sensitivity</i>"]
     S2 --> S3["📄 Stage 3<br/>Writing<br/><i>LaTeX + 3-pass abstract<br/>+ anonymity scan</i>"]
@@ -43,7 +43,7 @@ flowchart LR
 
 ## ✨ What it does
 
-Drop in a mathematical-modeling contest's problem PDFs. The skill suite — five staged Claude / Codex agents — first asks which contest (MCM/ICM or CUMCM or other), gathers the deadline and team info, then runs: **read all problems → score them on a 5-axis rubric → commit to one → formalize the model (assumptions, notation, candidate families) → write code that runs baseline + small-instance exact Gap + ablation + sensitivity sweeps → fill the LaTeX template → iterate the abstract three times until every claim has a hard number → run an anonymity scan that blocks the submission on any author/school/path leak → package `submit.zip`.** You upload the zip. The skill never auto-submits.
+Drop in a mathematical-modeling contest's problem PDFs. The skill suite — five staged Claude / Codex agents — first asks which contest (MCM/ICM or CUMCM or other), gathers the deadline and team info, then runs: **read all problems → score them on a 6-axis rubric (the 6th axis, skill-leverage, biases selection toward problems this suite is best built to win on) → commit to one → formalize the model (assumptions, notation, candidate families) → write code that runs baseline + small-instance exact Gap + ablation + sensitivity sweeps → fill the LaTeX template → iterate the abstract three times until every claim has a hard number → run an anonymity scan that blocks the submission on any author/school/path leak → package `submit.zip`.** You upload the zip. The skill never auto-submits.
 
 **Goal:** turn 72-96 contest hours into a defensible paper instead of a panicked one. **Final submission:** always your call.
 
@@ -68,7 +68,7 @@ That's it. First invocation asks you a handful of questions: which contest, year
 | Skill | Role | Reads | Writes |
 |---|---|---|---|
 | 🎯 [`auto-mm`](auto-mm/SKILL.md) | Orchestrator (routing + integrity gate + time budget, no modeling) | `run.yaml`, all stages' `hand_off.md` | `.heartbeat`, `progress.jsonl` |
-| 📂 [`auto-mm-triage`](auto-mm-triage/SKILL.md) | Stage 0: index problems, recon attachment data, 5-axis score, lock A/B/C/D | `inputs/problems/`, `inputs/data/` | `problem_choice.md`, `data_recon.md`, `selection_scorecard.md` |
+| 📂 [`auto-mm-triage`](auto-mm-triage/SKILL.md) | Stage 0: index problems, recon attachment data, 6-axis score (incl. **skill leverage**), lock A/B/C/D | `inputs/problems/`, `inputs/data/` | `problem_choice.md`, `data_recon.md`, `selection_scorecard.md` |
 | 📐 [`auto-mm-modeling`](auto-mm-modeling/SKILL.md) | Stage 1: assumptions, notation, 2-4 candidates, commit one formal model + real citations | `inputs/problems/<X>.pdf`, `data_recon.md` | `model.md`, `notation.md`, `assumptions.md`, `literature.md` |
 | 🧪 [`auto-mm-solving`](auto-mm-solving/SKILL.md) | Stage 2: pipeline.py + baseline + exact-Gap + ablation + sensitivity + figures via `brief → prompt → generate → self-check` | `model.md`, `inputs/data/` | `pipeline.py`, `validation.md`, `sensitivity.md`, `figures/<fig_id>/` |
 | 📄 [`auto-mm-writing`](auto-mm-writing/SKILL.md) | Stage 3: drop into template, fill sections, iterate abstract 3 times, anonymity scan, package `submit.zip` | all upstream `hand_off.md` + artifacts | `paper/main.pdf`, `submission/submit.zip`, `anonymity_report.json` |

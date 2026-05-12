@@ -72,21 +72,38 @@ Does the user / team have a head start in this domain?
 
 Ask the user explicitly if uncertain. The orchestrator's intuition is not enough — the user knows their team.
 
+## Axis 6: Skill leverage
+
+Does **this skill suite** (auto-mm's model-zoo recipes, the figure pipeline, the integrity gates, the EasyMCM2 scaffold, prior contest pitfalls) give a meaningful edge on this problem? Full evaluation guide in `references/skill-leverage-rubric.md`.
+
+| Score | Meaning |
+|---|---|
+| +2 | Problem matches a recipe auto-mm has machinery for (MILP+ALNS routing, inverse optimization, forecast→optimize two-stage, attention-for-interpretability). The gates and figure channels carry real weight. |
+| +1 | Most of the work is in scope; minor adaptation needed. |
+| 0 | Skill is neutral — useful as guard rail, not as engine. Bespoke code dominates. |
+| -1 | Skill helps only marginally; domain-specific libraries are not bundled. |
+| -2 | Skill is the wrong shape for this problem (essay-style policy, pure literature survey, heavy bespoke domain). Recommend declining. |
+
+This axis is the orchestrator's hat in the ring — it's the difference between "we can finish this" and "we can win something on this."
+
+Ask `skill-leverage-rubric.md` for the per-sub-skill worksheet (4 partials summed and rounded). The worksheet helps avoid scoring on vibes.
+
 ## Aggregation
 
-Sum the five axes. Range: -10 .. +10. Tie-break:
+Sum the six axes. Range: -12 .. +12. Tie-break (in order):
 
-1. Higher Risk axis wins (lower-risk problem preferred).
-2. Higher Data Sufficiency wins.
-3. Ask the user.
+1. **Higher Skill-leverage wins** — when two problems are within ±1 of each other on total, the higher-leverage one is the auto-mm pick. This is the rubric's whole point in the v2 form: bias the initial selection toward where the skill earns its medals.
+2. Higher Risk axis wins (lower-risk problem preferred).
+3. Higher Data Sufficiency wins.
+4. Ask the user.
 
 A total ≤ 0 is a warning sign — recommend the least-bad option but flag the risk and ask explicitly.
 
 ## What this rubric is NOT
 
-- It is not a guarantee. A +7 problem with a missing data file becomes a -3 next morning. Re-score is allowed within the first 6 hours of the contest.
-- It is not a predictor of award tier. It is a predictor of "can we finish a defensible paper on this in time." Award tier depends on execution.
-- It is not weighted. Equal-weight is intentional — judging the relative importance of axes adds noise.
+- It is not a guarantee. A +9 problem with a missing data file becomes a -3 next morning. Re-score is allowed within the first 6 hours of the contest.
+- It is not a predictor of award tier in isolation. It is a predictor of "can we finish a defensible paper on this AND has this skill suite given us an edge on it." Final award tier still depends on execution.
+- It is not weighted by score — each axis is equal-weight to keep the surface readable. Skill-leverage only gets its boost via the tiebreaker, not via a multiplier.
 
 ## Example: 2025 MCM Problem A vs B for a 3-person CS team
 
@@ -97,6 +114,7 @@ A total ≤ 0 is a warning sign — recommend the least-bad option but flag the 
 | Risk | +1 (clear sub-questions) | -1 ("characterize uncertainty" is vague) |
 | Differentiator | +1 (ALNS + carbon-aware) | +1 (uncertainty quantification) |
 | Team familiarity | +2 (CS) | -1 (no bio context) |
-| **Total** | **+7** | **-3** |
+| **Skill leverage** | **+2** (VRP in model-zoo + ALNS scaffold + route-map figure pipeline) | **-1** (PDE + Bayesian recipes are stubs only) |
+| **Total** | **+9** | **-4** |
 
-Recommendation: A. Hand off the modeling stage with a hard "do not change to B."
+Recommendation: A. Hand off the modeling stage with a hard "do not change to B." The +3 spread on Skill-leverage alone would have flipped the call even if the other axes had been close.
