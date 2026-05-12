@@ -50,3 +50,6 @@ Template.zip
 # Private retrospective — the source for pitfalls-from-experience.md etc.
 # Kept local for re-distillation; never published.
 README_数学建模比赛工作流.md
+
+# Hero image prompt — kept local; only the rendered docs/hero.png is shipped.
+docs/hero-prompt.md

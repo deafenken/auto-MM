@@ -233,7 +233,7 @@ auto-mm-triage/                   # Stage 0
 auto-mm-modeling/                 # Stage 1
 auto-mm-solving/                  # Stage 2 (+ figure_style.py + figure-* workflow refs)
 auto-mm-writing/                  # Stage 3 (+ EasyMCM2 scaffold + anonymity_scan.py + build.sh)
-docs/hero-prompt.md               # prompt for generating the README banner; drop hero.png here
+docs/hero.png                     # README banner
 README.md  README.zh-CN.md
 CLAUDE.md                         # editor notes for Claude Code
 ```

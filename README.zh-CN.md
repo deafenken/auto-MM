@@ -233,7 +233,7 @@ auto-mm-triage/                   # Stage 0
 auto-mm-modeling/                 # Stage 1
 auto-mm-solving/                  # Stage 2（+ figure_style.py + figure-* workflow refs）
 auto-mm-writing/                  # Stage 3（+ EasyMCM2 scaffold + anonymity_scan.py + build.sh）
-docs/hero-prompt.md               # README 横幅图的生成提示词；图丢这里就生效
+docs/hero.png                     # README 横幅图
 README.md  README.zh-CN.md
 CLAUDE.md                         # 给 Claude Code 维护者看的 notes
 ```
