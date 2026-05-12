@@ -9,9 +9,9 @@ Every figure folder under `stage2_solving/figures/<fig_id>/` starts with a brief
 
 ## Meta
 - **fig_id**: <e.g. fig-route-map>
-- **type**: <data | schematic>
+- **type**: <data | schematic | sourced>
 - **paper_section**: <e.g. "Results §6.2" or "Algorithm §5.1">
-- **filename in paper**: img/<fig_id>.pdf
+- **filename in paper**: img/<fig_id>.<pdf|png>
 - **revision**: <integer, increments each time the brief is materially edited>
 
 ## The one-sentence claim
@@ -33,6 +33,13 @@ dropped. Examples:
 ### For type=schematic:
 - **Source section**: stage1_modeling/model.md §<N> | stage1_modeling/notation.md | other
 - **Conceptual content**: <bulleted list of what concept is illustrated>
+
+### For type=sourced:
+- **Real-world subject**: <e.g. "Wuhan green delivery zone boundary as published by 武汉市生态环境局 2024-03">
+- **Why a real image is required (not a schematic)**: <e.g. "The problem statement specifies actual customer locations on Wuhan's east-west axis; an illustrative map would mislead about scale and distances.">
+- **Acceptable sources, priority order**: <e.g. "OpenStreetMap → 天地图 → Wikimedia Commons">
+- **License requirements**: <e.g. "Public domain / CC BY / CC BY-SA preferred; fair-use acceptable for policy screenshots with cite">
+- **See `figure-sourcing.md` for the full search-download-cite workflow.**
 
 ## Content (what MUST appear)
 - <Each visual element on its own line. For data figures: axes (with units),
@@ -227,4 +234,65 @@ Our framework has four stages — preprocessing, MILP build, ALNS solve, validat
 - [ ] One forward chain + one feedback edge with the right label
 - [ ] PDF vector output
 - [ ] All text legible at 100% paper zoom
+```
+
+## Worked example — sourced figure
+
+```markdown
+# Figure brief — fig-wuhan-green-zone
+
+## Meta
+- fig_id: fig-wuhan-green-zone
+- type: sourced
+- paper_section: Data §2.1
+- filename in paper: img/fig-wuhan-green-zone.png
+- revision: 1
+
+## The one-sentence claim
+The 2024 Wuhan green delivery zone boundary, as defined by 武汉市生态环境局, encloses the 30 customers listed in the problem statement and spans roughly 12 km east-west.
+
+## Inputs (sourced)
+- Real-world subject: Official 2024 boundary of Wuhan's green delivery zone.
+- Why a real image is required: The problem statement names specific customer
+  locations and a specific policy area. An illustrative map would mislead about
+  scale, road network, and the actual policy boundary.
+- Acceptable sources, priority order:
+  1. 武汉市生态环境局 official PDF / website
+  2. OpenStreetMap with the boundary overlay (ODbL license)
+  3. 天地图 (国家地理信息公共服务平台)
+- License requirements: CC BY / CC BY-SA / Public Domain preferred; ODbL
+  acceptable for OSM. Fair-use acceptable for official policy screenshots
+  with proper citation.
+
+## Content
+- The boundary outline of the green zone, visible against the road network
+- A legend or label identifying the green zone (in 中文 or 中英 mixed)
+- A scale bar (km or m)
+- Optional: 2-3 reference landmarks (rivers, major roads) for orientation
+- Customer locations may be overlaid by us as small markers if license allows
+
+## Style constraints
+- Aspect: roughly 4:3 or 16:9 (depends on the region's east-west elongation)
+- Output format: PNG (raster) is acceptable for maps; resolution ≥ 1500 px
+- No in-figure title; LaTeX provides caption
+- No author / school / contest team identifier visible
+- No watermark from a third-party mapping service that prohibits republication
+
+## Reference context
+> "图\ref{fig:wuhan-green-zone} 显示了 2024 年武汉市绿色配送区的实际边界范围，
+>  覆盖东西向约 12 km 的核心商业区，包含问题附件给定的 30 个客户全部位置。"
+
+## Out of scope
+- No AI-generated boundary (Rule 4 + research-integrity violation).
+- No screenshots from Google Maps (terms of service restrict republication).
+- No paywalled satellite imagery without license.
+- No faces / license plates visible on any street-level imagery.
+
+## Acceptance signals (see figure-sourcing.md for full sourced checklist)
+- [ ] chosen.png exists and is from one of the priority sources
+- [ ] attribution.md has URL + retrieved_at_utc + license + creator
+- [ ] License permits publication
+- [ ] Modifications by us (cropping, marker overlay) are documented
+- [ ] BibTeX entry in attribution.md is ready to append to references.bib
+- [ ] Boundary matches what the problem statement describes (no relabeling)
 ```

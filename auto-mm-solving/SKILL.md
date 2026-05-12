@@ -163,34 +163,54 @@ For each `to-sweep` assumption from `stage1_modeling/assumptions.md`:
 
 `references/sensitivity-analysis.md` has the recipe in more depth.
 
-### 5. Generate figures (brief → prompt → generate → self-check)
+### 5. Produce figures (brief → produce → self-check)
 
-Every figure goes through the four-step workflow in `references/figure-workflow.md`. No exceptions, no shortcuts. The point is to make the figure's purpose explicit before any pixels and to catch mechanical style-rule violations before the writing stage.
+Every figure goes through the workflow in `references/figure-workflow.md`. Three channels, one shared spec:
 
-Per-figure folder layout (the contract):
+- **`type: data`** — driven by real numbers. Code prompt → `plot.py` (matplotlib) or `tikz.tex` → render against data.
+- **`type: schematic`** — concept illustration / flowchart. TikZ code prompt (default) or AI image-gen prompt.
+- **`type: sourced`** — real-world image (map, policy doc, device, satellite). **AI must NOT generate this.** Search → download → cite. Full protocol in `references/figure-sourcing.md`.
+
+The catalog of 数模 figure types (≈20 entries: convergence, Pareto, route map, Gantt, heatmap, ROC, model flowchart, region map, policy screenshot, etc.) and which channel each belongs to lives in `references/figure-types-catalog.md`. The quick rule: real numbers from your experiments → `data`; specific real-world place / object / document → `sourced`; otherwise (pure concept) → `schematic`.
+
+Per-figure folder layout (the contract — common files marked ★, channel-specific marked with channel):
 
 ```
 stage2_solving/figures/
-└── <fig_id>/                          # e.g. fig-route-map
-    ├── brief.md                       # Step 1: information document (figure-brief-template.md)
-    ├── prompt.md                      # Step 2: generation prompt (figure-prompt-patterns.md)
-    ├── source/                        # Step 3: plot.py | tikz.tex | image_request.json
-    ├── output.pdf                     # final artifact
-    ├── self_check.md                  # Step 4: style-rule audit
-    └── status                         # draft | needs_revision | ready
+└── <fig_id>/                          # e.g. fig-route-map, fig-model-flowchart, fig-region-map
+    ├── brief.md                       ★ Step 1: information document
+    │
+    ├── prompt.md                      [data + schematic] Step 2: generation prompt
+    ├── source/                        [data + schematic]
+    │   ├── plot.py | tikz.tex | image_request.json
+    │   ├── data_used.csv              [data only] snapshot of numbers used
+    │   └── log.txt
+    │
+    ├── search_queries.md              [sourced] Step 2: the search plan
+    ├── sources/                       [sourced] candidate downloads + metadata
+    │   ├── candidate_NN.png
+    │   └── candidate_NN.meta.json
+    ├── attribution.md                 [sourced] citation + license + modifications
+    │
+    ├── output.pdf | chosen.png        ★ the final artifact (name varies by channel)
+    ├── self_check.md                  ★ Step 3: style + claim audit
+    └── status                         ★ draft | needs_revision | ready
 
-# after Step 4 passes, a copy lands at:
-└── <fig_id>.pdf                       # the path LaTeX uses via \includegraphics{img/<fig_id>.pdf}
+# after self-check passes, a copy lands at:
+└── <fig_id>.<ext>                     # the path LaTeX uses via \includegraphics{img/<fig_id>}
 ```
 
 Workflow per figure:
 
-1. Write `brief.md` (Step 1) using the template in `figure-brief-template.md`. The brief's one-sentence claim is the anchor for everything else.
-2. Build `prompt.md` (Step 2) from the brief, picking the right pattern in `figure-prompt-patterns.md`: matplotlib code, TikZ code, or image-gen.
-3. Run the generator (Step 3); snapshot `data_used.csv` for data figures so the result is reproducible.
-4. Self-check (Step 4) against `figure-quality.md` rules. If `ready`, copy `output.pdf` to `figures/<fig_id>.pdf`. If `needs_revision`, edit `prompt.md` (not `brief.md`) and re-run. Cap at 3 iterations per figure; on the 4th, escalate.
+1. Write `brief.md` using `figure-brief-template.md`. The brief's `type:` field commits to a channel; the one-sentence claim anchors everything.
+2. Channel-specific production:
+   - `data` / `schematic`: build `prompt.md` from `figure-prompt-patterns.md`, run the generator. For `data`, snapshot `data_used.csv` for reproducibility.
+   - `sourced`: write `search_queries.md`, run `auto-mm-solving/assets/download_image.py` for each candidate, choose, write `attribution.md`. Full protocol in `references/figure-sourcing.md`.
+3. Self-check against `figure-quality.md` (universal) + channel-specific checks. If `ready`, copy the final artifact to `figures/<fig_id>.<ext>`. If `needs_revision`, edit `prompt.md` or re-search and try again. Cap at 3 iterations; on the 4th, escalate.
 
 `assets/figure_style.py` provides the matplotlib RC and the PALETTE. The figure-prompt patterns require scripts to import it as `from src.style import PALETTE, apply_style`, so Stage 2 also seeds a `src/style.py` that re-exports from `figure_style.py` (the pipeline-scaffolding step does this; see Step 1 above).
+
+For `sourced` figures, `assets/download_image.py` fetches a candidate and emits a starter `.meta.json` (URL + retrieved_at + dimensions + format). The human fills in `title`, `creator`, `license`, `license_url` from the source page — the script does not guess licenses.
 
 The orchestrator's hand-off gate refuses to advance to Stage 3 if any `figures/<fig_id>/status` is anything other than `ready` (or `dropped` with a logged reason in `self_check.md`).
 
@@ -260,10 +280,12 @@ The orchestrator monitors per-experiment wall time and aborts a run that exceeds
 | File | Load when |
 |---|---|
 | `references/algorithm-selection.md` | Step 1 — choosing the solver / heuristic wrapper |
-| `references/figure-workflow.md` | Step 5 — for every figure, the four-step pipeline |
-| `references/figure-brief-template.md` | Step 5.1 — writing each figure's brief |
-| `references/figure-prompt-patterns.md` | Step 5.2 — building each figure's prompt |
-| `references/figure-quality.md` | Step 5.4 — self-check against style rules; also for the orphan-label grep |
+| `references/figure-types-catalog.md` | Step 5 — classifying each figure into `data` / `schematic` / `sourced` |
+| `references/figure-workflow.md` | Step 5 — for every figure, the brief→produce→self-check pipeline |
+| `references/figure-brief-template.md` | Step 5.1 — writing each figure's brief (any channel) |
+| `references/figure-prompt-patterns.md` | Step 5.2 — building each figure's prompt (`data` / `schematic` channels) |
+| `references/figure-sourcing.md` | Step 5.2 — search → download → cite workflow for the `sourced` channel |
+| `references/figure-quality.md` | Step 5.3 — self-check against style rules; also for the orphan-label grep |
 | `references/sensitivity-analysis.md` | Step 4 — building sweep grids and writing insight |
 | `references/validation-protocol.md` | Step 3 — what counts as adequate validation per Rule 6 |
 | `auto-mm-modeling/references/pitfalls-from-experience.md` | Pitfall P10-P12 inform sensitivity and figure choices |

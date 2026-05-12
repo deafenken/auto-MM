@@ -1,51 +1,68 @@
-# Figure workflow — brief → prompt → generate → self-check
+# Figure workflow — brief → produce → self-check
 
-The default way to make a figure in this skill is NOT "ask the assistant to draw it." It is a three-step pipeline with a structured spec sheet, a saved prompt, and a self-check pass against the style rules. The point is to (a) make the figure's purpose explicit before any pixels are drawn, and (b) keep prompts reusable across iterations.
+The default way to make a figure in this skill is NOT "ask the assistant to draw it." It is a structured pipeline: write a spec sheet, produce the figure through one of three channels, and self-check against the style rules. The point is to (a) make the figure's purpose explicit before any pixels are drawn, and (b) keep the audit trail intact across iterations.
 
-External review is **not** per-figure in this skill. The self-check at Step 4 catches mechanical style-rule violations; aesthetics and "does this figure earn its space" are the writer's judgment at Stage 3, not an automated gate.
+External review is **not** per-figure in this skill. The self-check catches mechanical style-rule violations; aesthetics and "does this figure earn its space" are the writer's judgment at Stage 3, not an automated gate.
 
-## Two figure classes — same pipeline, different prompts
+## Three figure channels — same brief, different production
 
-| Class | What it is | Primary prompt target |
-|---|---|---|
-| **Data figure** (`type: data`) | Driven by real numbers from `stage2_solving/runs/<exp_id>/`. Scatter, bar, heatmap, convergence, Pareto, sensitivity, route map, Gantt. | A code-generation prompt → produces `plot.py` (matplotlib/seaborn) or `tikz.tex`. The figure is built by running the code on real data. |
-| **Schematic figure** (`type: schematic`) | Diagrammatic, no real-data dependency. Model flowchart, system architecture, conceptual illustration. | Either a text-to-image prompt (DALL-E / Imagen / Nano Banana / Midjourney) OR a TikZ code-generation prompt. Default to TikZ for anything with text labels (text rendering in image models is unreliable). |
+| Channel | What it is | Production tools | Folder extras |
+|---|---|---|---|
+| **`type: data`** | Driven by real numbers from `stage2_solving/runs/<exp_id>/`. Scatter, bar, heatmap, convergence, Pareto, sensitivity, route map, Gantt, ROC, etc. | matplotlib / seaborn / NetworkX code, or TikZ; runs on the actual data. | `prompt.md` (code prompt) + `source/plot.py` + `source/data_used.csv` + `output.pdf` |
+| **`type: schematic`** | Diagrammatic, no real-data dependency. Model flowchart, system architecture, algorithmic structure, conceptual illustration. | TikZ (default, especially with text labels) OR AI text-to-image (DALL-E / Imagen / Midjourney / Nano Banana / SDXL — only when aesthetic dominates and labels are minimal). | `prompt.md` (TikZ or image prompt) + `source/tikz.tex` *or* `source/image_request.json` + `output.pdf` |
+| **`type: sourced`** | Must depict a real-world thing (specific city map, satellite imagery, policy screenshot, product photo, historical artifact). **AI must not generate this.** | Web search → download candidates → choose → cite. See `figure-sourcing.md` for the full protocol. | `search_queries.md` + `sources/` (candidate_NN.png + .meta.json) + `chosen.png` + `attribution.md` |
 
-Both classes go through the same three steps.
+The full catalog of which figure types fall into which channel is in `figure-types-catalog.md`. The quick rule:
+
+1. Real numbers from your experiments → **`data`**.
+2. Specific real-world place / object / document → **`sourced`**.
+3. Otherwise (pure concept / illustration) → **`schematic`**.
+
+If two channels could apply: `sourced` wins over `schematic`; `data` wins over `schematic`. Never use `schematic` to substitute for a missing real-world artifact — that is fabrication.
 
 ## Per-figure folder layout (the contract)
 
-Each figure lives in its own folder under `stage2_solving/figures/`:
+Each figure lives in its own folder under `stage2_solving/figures/`. The common files are the same; the channel-specific files differ.
 
 ```
 stage2_solving/figures/
-└── <fig_id>/                          # e.g. fig-model-flowchart
-    ├── brief.md                       # Step 1: information document
-    ├── prompt.md                      # Step 2: generation prompt
-    ├── source/                        # Step 3: generation artifacts
-    │   ├── plot.py                    #   for type=data with matplotlib
-    │   │ | tikz.tex                   #   for type=schematic with TikZ
-    │   │ | image_request.json         #   for type=schematic with image model
-    │   ├── data_used.csv              #   for type=data: snapshot of the numbers
-    │   └── log.txt                    #   build log
-    ├── output.pdf                     # Step 3 final artifact (or .png if rasterized)
-    ├── self_check.md                  # Step 4: short style-rule self-audit
+└── <fig_id>/                          # e.g. fig-convergence, fig-model-flowchart, fig-region-map
+    ├── brief.md                       # ALL channels — the information document (Step 1)
+    │
+    ├── prompt.md                      # data + schematic — the generation prompt (Step 2a)
+    ├── source/                        # data + schematic
+    │   ├── plot.py | tikz.tex | image_request.json
+    │   ├── data_used.csv              #   data only — snapshot of numbers used
+    │   └── log.txt                    #   build / generation log
+    │
+    ├── search_queries.md              # sourced — the search plan (Step 2b)
+    ├── sources/                       # sourced — candidate downloads + metadata
+    │   ├── candidate_01.png
+    │   ├── candidate_01.meta.json
+    │   └── ...
+    ├── attribution.md                 # sourced — citation + license + modifications
+    │
+    ├── output.pdf | output.png | chosen.png   # the final artifact (channel-dependent name)
+    ├── self_check.md                  # ALL channels — style + claim audit (Step 4)
     └── status                         # draft | needs_revision | ready
 ```
 
-After Step 4 succeeds, a copy/symlink lands at `stage2_solving/figures/<fig_id>.pdf` — that is the path LaTeX references via `\includegraphics{img/<fig_id>.pdf}`.
+After self-check passes, a copy/symlink lands at `stage2_solving/figures/<fig_id>.<ext>` — that is the path LaTeX references via `\includegraphics{img/<fig_id>}`.
 
-`<fig_id>` is the same name LaTeX uses (`fig-data-flow`, `fig-route-map`, etc.). One ID = one folder = one figure in the paper.
+`<fig_id>` is the same name LaTeX uses (`fig-data-flow`, `fig-route-map`, `fig-wuhan-zone`, etc.). One ID = one folder = one figure in the paper.
 
 ## Step 1 — Brief (information document)
 
-Template in `figure-brief-template.md`. Required fields:
+Template in `figure-brief-template.md`. Required fields (every channel):
 
 - **fig_id** — the same letter LaTeX uses.
-- **type** — `data` or `schematic`.
+- **type** — `data` | `schematic` | `sourced`.
 - **paper_section** — which §N this figure appears in.
 - **claim** — what is the *one* sentence the figure proves? If you can't write this in one sentence, the figure is unfocused.
-- **inputs** — for `type=data`: which `runs/<exp_id>/result.json` or `tables/*.csv` feeds it. For `type=schematic`: which `stage1_modeling/model.md` section it depicts.
+- **inputs** — channel-dependent:
+  - `data`: which `runs/<exp_id>/result.json` or `tables/*.csv` feeds it.
+  - `schematic`: which `stage1_modeling/model.md` section it depicts.
+  - `sourced`: a one-sentence description of the real-world subject and why a real image is necessary.
 - **content** — bulleted list of what must appear. Specific.
 - **style constraints** — references back to `figure-quality.md` rules.
 - **reference context** — verbatim quote of the prose line in the paper that will `\ref{}` this figure.
@@ -53,19 +70,12 @@ Template in `figure-brief-template.md`. Required fields:
 
 Why this step matters: without a written brief, prompts drift between iterations and you converge after 5 mutually-inconsistent versions instead of 1. The brief is the anchor.
 
-## Step 2 — Prompt
+## Step 2 — Produce (channel-specific)
 
-Built *from* the brief, not in place of it. Templates in `figure-prompt-patterns.md`. Three patterns:
+### 2a. Channel `data` — code prompt → plot.py / tikz.tex → render
 
-- **Code prompt (matplotlib/seaborn)** — for `type=data`. The prompt names: data source, columns, plot kind, color mapping, labels (units), aspect ratio, output path. Output is `plot.py`.
-- **Code prompt (TikZ)** — for `type=schematic` where text labels matter. The prompt names: nodes (with text + position), edges (with arrow style + label), palette, output path. Output is `tikz.tex`.
-- **Image prompt (text-to-image)** — for `type=schematic` where conceptual aesthetic dominates. The prompt: subject + composition + style cues + negative prompts. Output is `output.png`.
+Build a code prompt from `figure-prompt-patterns.md` Pattern A (matplotlib) or Pattern B (TikZ). Save verbatim to `prompt.md`. The prompt names: data source, columns, plot kind, color mapping (PALETTE indices), axis labels with units, aspect ratio, output path. Output is `source/plot.py` or `source/tikz.tex`.
 
-Each prompt is **saved verbatim** to `prompt.md`. If a figure fails self-check, the prompt is the diff target — not the brief.
-
-## Step 3 — Generate
-
-**Code-based (matplotlib / TikZ)**:
 ```bash
 cd stage2_solving/figures/<fig_id>/
 python source/plot.py                     # matplotlib path
@@ -74,19 +84,40 @@ xelatex source/tikz.tex                   # TikZ path → PDF vector
 mv plot.pdf output.pdf
 ```
 
-Reproducibility: same data + same script + same matplotlib RC → same PDF. Save the data snapshot (`source/data_used.csv`) so the figure can be regenerated without re-running the whole experiment.
+Reproducibility: same data + same script + same matplotlib RC → same PDF. Save the data snapshot to `source/data_used.csv` so the figure can be regenerated without re-running the whole experiment.
 
-**Image-based**:
+### 2b. Channel `schematic` — TikZ code prompt OR image-gen prompt → render
+
+For text-heavy diagrams (model flowcharts, system architecture), use Pattern B (TikZ). For aesthetic concept illustrations with no labels, use Pattern C (image-gen). Save the prompt verbatim to `prompt.md`. Output is `output.pdf` (TikZ) or `output.png` (image-gen).
+
 ```bash
-# Skill writes image_request.json; user's environment wraps the vendor call.
-# output.png lands in the folder.
+# TikZ
+xelatex source/tikz.tex
+mv tikz.pdf output.pdf
+
+# Image-gen — user's environment wraps the vendor call (DALL-E, Imagen, Midjourney, etc.)
+# Skill emits image_request.json; the wrapper writes output.png back into the folder.
 ```
 
-The user's environment dictates the image-gen tool. The skill emits `image_request.json` in a standard schema and lets the user wire up whichever vendor they have access to. See `figure-prompt-patterns.md` § "Vendor adapters."
+The user's environment dictates the image-gen tool. The skill emits `source/image_request.json` in a standard schema and lets the user wire up whichever vendor they have access to.
 
-After generation, set `status: needs_revision` until Step 4 passes.
+### 2c. Channel `sourced` — write `search_queries.md` → download candidates → choose → cite
 
-## Step 4 — Self-check (compliance against the rules, not aesthetics)
+This channel has no "prompt." Instead, write `search_queries.md` planning the search, run the queries, download candidates with `auto-mm-solving/assets/download_image.py` (which auto-fills a starter `.meta.json`), choose the best candidate, optionally crop / annotate (recording the modification), and write `attribution.md`. Full protocol in `figure-sourcing.md`.
+
+```bash
+python auto-mm-solving/assets/download_image.py \
+    --url "<URL>" \
+    --out runs/<slug>/stage2_solving/figures/<fig_id>/sources/candidate_01.png \
+    --note "matches the boundary in the problem statement"
+# fill in candidate_01.png.meta.json's TBD fields by reading the source page
+```
+
+After choosing: `cp sources/candidate_NN.png chosen.png` (or crop with Pillow / ImageMagick first), write `attribution.md`, then self-check.
+
+After production (any channel), set `status: needs_revision` until self-check passes.
+
+## Step 3 — Self-check (compliance against the rules, not aesthetics)
 
 This is a fast, mechanical check **done by Claude in the same session** — it is NOT an external review. The point is to catch the obvious style-rule violations before moving on, not to second-opinion the figure's value.
 
@@ -96,18 +127,37 @@ Things checked in self-check (saved to `self_check.md`):
 # self_check.md — <fig_id>
 
 **Checked**: <UTC timestamp>
+**Type**: data | schematic | sourced
 **Verdict**: ready | needs_revision
 
-## Mechanical compliance (per figure-quality.md)
-- [ ] Output exists at expected path (output.pdf or output.png as allowed).
-- [ ] No in-figure title (matplotlib: no plt.title(); TikZ: no \node[title]; image: no rendered text).
+## Universal mechanical compliance (per figure-quality.md)
+- [ ] Output exists at expected path (output.pdf | output.png | chosen.png).
+- [ ] No in-figure title (caption is LaTeX's job).
 - [ ] Output format matches brief (PDF vector unless brief allows PNG).
 - [ ] Aspect ratio matches brief (±5% tolerance).
+- [ ] No author / school / OS-path / git-remote text visible anywhere.
+- [ ] Filename matches `<fig_id>.<ext>` after the final rename.
+
+## Channel-specific (fill in only the rows for this figure's type)
+
+### type=data
 - [ ] All colors via PALETTE (no rogue hex literals outside the palette).
-- [ ] No author / school / OS-path text anywhere in the figure (grep the .tex / scan the PDF text).
-- [ ] For data figures: data_used.csv exists; plot.py reads from named files (no hardcoded data).
-- [ ] For schematic figures: every node from brief.Content is present (check by node-count and label presence).
-- [ ] Filename: matches `<fig_id>.pdf` or `<fig_id>.png` after rename.
+- [ ] `source/data_used.csv` exists; `plot.py` reads from named files (no hardcoded data).
+- [ ] Numeric values in the figure trace to result.json / tables under runs/<exp_id>/.
+
+### type=schematic
+- [ ] Every node / box from brief.Content is present (count + label match).
+- [ ] If TikZ: source compiles without errors; no \tikzset{shadow, fadings}.
+- [ ] If image-gen: no AI tells (purple-blue gradient, decorative icons, drop shadows, neon).
+- [ ] No fabricated real-world content (if the figure looks like a real map / device, switch to `sourced`).
+
+### type=sourced
+- [ ] `attribution.md` exists with URL + retrieved_at_utc + license + creator.
+- [ ] License permits this use (publication, modification if applicable).
+- [ ] Modifications listed in attribution.md match what was actually done (no hidden alterations).
+- [ ] BibTeX entry in attribution.md is appendable to references.bib without edits.
+- [ ] No misleading representation (no relabeling, no false coloration, no fabricated boundary).
+- [ ] Image resolution ≥ 1000 px on the long side for print legibility (unless brief explicitly allows smaller).
 
 ## Brief-alignment spot-check
 - Claim: <restate brief's claim sentence>

@@ -231,7 +231,7 @@ auto-mm/                          # orchestrator + state contract + integrity ru
                                   # long-running-protocol / escalation-policy / contest-types
 auto-mm-triage/                   # Stage 0
 auto-mm-modeling/                 # Stage 1
-auto-mm-solving/                  # Stage 2（+ figure_style.py + figure-* workflow refs）
+auto-mm-solving/                  # Stage 2（+ figure-{types-catalog,workflow,sourcing}.md + download_image.py）
 auto-mm-writing/                  # Stage 3（+ EasyMCM2 scaffold + anonymity_scan.py + build.sh）
 docs/hero.png                     # README 横幅图
 README.md  README.zh-CN.md
