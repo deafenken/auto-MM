@@ -1,14 +1,13 @@
 # Anonymity check — Rule 2 enforcement
 
-The submitted paper must contain zero personally-identifying information. One leaked username is enough for disqualification. This file is the protocol; the writing stage runs the scan, writes `anonymity_report.md`, and blocks `submit.zip` if any hit is found.
+The submitted paper must contain zero personally-identifying information. One leaked username is enough for disqualification. This file is the protocol; the writing stage runs the scan, writes `anonymity_report.json`, and blocks `submit.zip` if any hit is found.
 
 ## What gets scanned
 
-1. **PDF metadata** — `/Author`, `/Creator`, `/Producer`, `/Title`, `/Subject`, `/Keywords`, `/Trapped`, XMP packets.
-2. **PDF body text** — extracted via pdfminer; greppable Unicode.
-3. **PDF object streams** — names of fonts (rarely leaks names, but worth checking), embedded files.
-4. **Source LaTeX files** — `*.tex`, `*.sty`, `*.cls`, `*.bib`.
-5. **Code listings embedded in the paper** — file paths inside `\begin{lstlisting}...\end{lstlisting}` blocks.
+1. **PDF metadata — selected fields only**: `/Author`, `/Title`, `/Subject`, `/Keywords`. `/Producer` and `/Creator` are intentionally **excluded** because xelatex always writes engine-version strings there — those are not PII.
+2. **PDF body text** — extracted via `pdfminer.six`.
+3. **Paper sources** — only `*.tex` and `*.bib` files. `*.sty` and `*.cls` are **NOT scanned** because they are upstream template/style files and often contain maintainer GitHub URLs that are not the team's identity.
+4. **Code listings embedded in the paper PDF** are scanned as part of the PDF body text in (2).
 
 ## Forbidden pattern categories
 
@@ -40,93 +39,29 @@ The AI report must declare LLM usage but **not the author**. If the AI report me
 
 ## Scan implementation
 
-```python
-# scripts/anonymity_scan.py
-import re, json, sys
-from pathlib import Path
-from pdfminer.high_level import extract_text
-from pdfminer.pdfparser import PDFParser
-from pdfminer.pdfdocument import PDFDocument
+The actual scanner is bundled at `auto-mm-writing/assets/anonymity_scan.py` (see that file for the canonical source). It implements three discrimination rules:
 
-# Patterns — extend per contest profile
-PATTERNS_EN = [
-    r"\bUniversity of [A-Z][A-Za-z]+\b",
-    r"\b[A-Z][a-z]+ University\b",
-    r"\bProf\.?\s+[A-Z][a-z]+\b",
-    r"\bDr\.?\s+[A-Z][a-z]+\b",
-    r"/Users/[A-Za-z0-9_]+",
-    r"/Volumes/[A-Za-z0-9_]+",
-    r"github\.com/[A-Za-z0-9_-]+/",
-    r"gitee\.com/[A-Za-z0-9_-]+/",
-]
+1. **Metadata**: only `Author`, `Title`, `Subject`, `Keywords` are scanned. `Producer` and `Creator` are excluded because normal `xelatex` PDFs always populate them with version strings, which are not PII.
 
-PATTERNS_ZH = [
-    r"姓名[:：]?\s*\S+",
-    r"学校[:：]?\s*\S+",
-    r"学院[:：]?\s*\S+",
-    r"指导老师[:：]?\s*\S+",
-    r"指导教师[:：]?\s*\S+",
-    r"导师[:：]?\s*\S+",
-    r"[一-鿿]{2,4}大学",
-    r"[一-鿿]{2,4}学院",
-    r"教授",
-    r"副教授",
-]
+2. **PDF body and `.tex` / `.bib` sources** are scanned with `PATTERNS_EN` + `PATTERNS_ZH`. `.sty` and `.cls` files are **NOT scanned** — they are upstream template/style files, often contain maintainer GitHub URLs and contacts that are not the team's identity.
 
-def scan_pdf(pdf_path, lang):
-    p = Path(pdf_path)
-    hits = []
+3. **Per-contest pattern set** is selected by `run.yaml.contest.family`: MCM → English only, CUMCM → 中文 only, other → both. Patterns are extensible via `runs/<slug>/inputs/anonymity_extra.json`.
 
-    # Metadata
-    with p.open("rb") as f:
-        doc = PDFDocument(PDFParser(f))
-        meta = doc.info[0] if doc.info else {}
-        for key in (b"Author", b"Creator", b"Producer", b"Title", b"Subject", b"Keywords"):
-            val = meta.get(key, b"")
-            if isinstance(val, bytes):
-                val = val.decode(errors="ignore")
-            if val and val.strip():
-                hits.append({"kind": "metadata", "field": key.decode(), "value": val})
+Pattern set summary (full list in the bundled script):
 
-    # Body text
-    text = extract_text(str(p))
-    patterns = PATTERNS_EN + PATTERNS_ZH if lang == "both" else (PATTERNS_EN if lang == "en" else PATTERNS_ZH)
-    for pat in patterns:
-        for m in re.finditer(pat, text):
-            hits.append({"kind": "body", "pattern": pat, "match": m.group(0)[:120]})
+| Pattern | Matches |
+|---|---|
+| `\bUniversity of [A-Z][A-Za-z]+\b` | "University of Foo" |
+| `\b[A-Z][a-z]+ University\b` | "Foo University" |
+| `\bProf\.?\s+[A-Z][a-z]+\b` | "Prof. Foo", "Prof Foo" |
+| `/Users/[A-Za-z0-9_]+`, `/Volumes/[…]`, `/home/[…]` | OS-username file paths |
+| `github\.com/[A-Za-z0-9_-]+/`, `gitee\.com/[…]/` | personal git remotes |
+| `姓名[:：]?\s*\S+`, `学校[:：]?\s*\S+`, etc. | 中文 metadata leaks |
+| `[一-鿿]{2,4}大学`, `[一-鿿]{2,4}学院` | 中文 school names |
 
-    return hits
+The scanner respects `runs/<slug>/anonymity_whitelist.txt` (one regex per line + reason) — entries listed there are skipped. Whitelist is consulted **before** declaring a hit.
 
-def scan_sources(paper_dir, lang):
-    hits = []
-    patterns = PATTERNS_EN + PATTERNS_ZH if lang == "both" else (PATTERNS_EN if lang == "en" else PATTERNS_ZH)
-    for f in Path(paper_dir).rglob("*"):
-        if f.suffix.lower() not in {".tex", ".sty", ".cls", ".bib"}:
-            continue
-        try:
-            text = f.read_text(errors="ignore")
-        except OSError:
-            continue
-        for pat in patterns:
-            for m in re.finditer(pat, text):
-                line_no = text[: m.start()].count("\n") + 1
-                hits.append({"kind": "source", "file": str(f), "line": line_no,
-                             "pattern": pat, "match": m.group(0)[:120]})
-    return hits
-
-if __name__ == "__main__":
-    pdf, paper_dir, lang, out = sys.argv[1:5]
-    report = {
-        "pdf": pdf,
-        "lang": lang,
-        "metadata_and_body_hits": scan_pdf(pdf, lang),
-        "source_hits": scan_sources(paper_dir, lang),
-    }
-    Path(out).write_text(json.dumps(report, ensure_ascii=False, indent=2))
-    n = len(report["metadata_and_body_hits"]) + len(report["source_hits"])
-    print(f"anonymity_scan: {n} hits → {out}")
-    sys.exit(1 if n > 0 else 0)
-```
+The scanner exits non-zero on any hit; the orchestrator's writing-stage gate blocks `submit.zip` accordingly.
 
 The skill writes this script to `assets/anonymity_scan.py` and runs it after every build.
 
@@ -172,7 +107,7 @@ The writing stage runs these substitutions at copy-into-paper time so the user d
 ## On a positive hit
 
 ```markdown
-# anonymity_report.md
+# anonymity_report.json (rendered as markdown for review)
 
 ## SCAN FAILED — 2 hits
 Generated at <ts>. submit.zip is BLOCKED until resolved.

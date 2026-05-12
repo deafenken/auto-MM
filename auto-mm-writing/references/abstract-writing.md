@@ -60,12 +60,20 @@ Open `stage2_solving/validation.md` and `sensitivity.md`. For every placeholder:
 Cross-check: every number in the abstract must trace to `validation.md` or `sensitivity.md`. The orchestrator runs:
 
 ```bash
-grep -oE '[0-9]+\.[0-9]+|[0-9]+%' abstract_pass2.md | sort -u > /tmp/abstract_nums
-grep -oE '[0-9]+\.[0-9]+|[0-9]+%' stage2_solving/{validation,sensitivity}.md | sort -u > /tmp/result_nums
+# Numbers covered: integers, comma-thousands (184,320), decimals (0.91), percentages (15.2%, 91%).
+NUM_RE='[0-9]+(,[0-9]{3})*(\.[0-9]+)?%?'
+
+grep -oE "$NUM_RE" abstract_pass2.md            | sort -u > /tmp/abstract_nums
+grep -hoE "$NUM_RE" stage2_solving/validation.md stage2_solving/sensitivity.md \
+                                                | sort -u > /tmp/result_nums
+
+# Numbers in the abstract that aren't in any results file = candidates for hallucination
 comm -23 /tmp/abstract_nums /tmp/result_nums
 ```
 
-Anything in the abstract but not in the results = hallucinated. Fix.
+Numbers like Task labels ("Task 1") and years ("2026") appear in both files and are not flagged. Anything in the abstract but not in the results = hallucinated. Fix.
+
+Floor check: the abstract must contain **≥5 unique numeric tokens** (Rule 9). `wc -l /tmp/abstract_nums` must report ≥5; <5 blocks the integrity gate.
 
 ### Pass 3 — length and tone
 

@@ -1,353 +1,41 @@
-% Task 1: Inferring Fan Votes
-\section{Task 1: Inferring Fan Votes}
+% part_2_model.tex — placeholder scaffold
+% auto-mm-writing populates each section from the matching upstream artifact.
 
-\subsection{Problem Analysis}
-Task 1 asks us to infer the latent fan vote outcomes from judges' scores and weekly eliminations, and to report two diagnostics: (i) consistency between inferred votes and actual eliminations, and (ii) uncertainty or stability of the inferred votes across contestants and weeks. The official data provide judges' scores and elimination results but do not reveal the fan vote totals. Because judges' scores are on a 10-point scale while fan votes may be orders of magnitude larger, a direct comparison is meaningless without normalization. Moreover, eliminations impose ordering constraints: a contestant who remains in week $t$ should not have a lower combined score than a contestant eliminated in that week. Finally, fan popularity typically changes smoothly across weeks, so large week-to-week swings should be penalized unless strongly supported by the data.
+%--------------------------------- Data preprocessing
+\section{Data Preprocessing}
+% PLACEHOLDER — drawn from stage0_triage/data_recon.md and how anomalies
+% were handled in stage2_solving/pipeline.py. Include a data-flow figure
+% (fig-data-flow.pdf in img/) if available.
+Data preprocessing description.
 
-\subsection{Model Construction}
-\subsubsection{Normalization of Judges' Scores}
-Let $C_{s,t}$ be the set of contestants still competing in season $s$, week $t$, and let $K_{s,t}$ be the number of judges that week. The total judges' score for contestant $i$ is
-\begin{equation}
-J_{i,s,t} = \sum_{k=1}^{K_{s,t}} J^{(k)}_{i,s,t} .
-\end{equation}
-We normalize within each season-week to obtain a share that is scale-free:
-\begin{equation}
-\tilde{J}_{i,s,t} = \frac{J_{i,s,t}}{\sum_{i \in C_{s,t}} J_{i,s,t}} .
-\end{equation}
-This captures contestant $i$'s relative technical standing in week $t$.
+%--------------------------------- Model build (one section per sub-question)
+\section{Task 1: <Title from problem restatement>}
+\subsection{Model formulation}
+% PLACEHOLDER — derived from stage1_modeling/model.md. Show notation,
+% objective(s), constraint groups (each with a 1-paragraph English gloss),
+% any non-trivial derivations.
+Model description, formulas, and derivations.
 
-\subsubsection{Fan Vote Representation}
-We infer only relative fan support, since absolute totals are not identifiable from eliminations alone. Define
-\begin{equation}
-\tilde{V}_{i,s,t} = \frac{V_{i,s,t}}{\sum_{i \in C_{s,t}} V_{i,s,t}} ,
-\end{equation}
-where $V_{i,s,t}$ is the unobserved fan vote count. The vector $\tilde{\mathbf{V}}_{s,t}$ lies on the probability simplex.
+\subsection{Algorithm}
+% PLACEHOLDER — prose summary of stage2_solving/pipeline.py for this task.
+% Each algorithmic component must answer "what problem feature does this address?"
+% per integrity-rules.md Rule 5.
+Algorithm description; cite stage2_solving/runs/<exp_id>/ for the implementation.
 
-\subsubsection{Combined Score Function}
-The show aggregates judges and fans into a combined score. We write the abstract form as
-\begin{equation}
-S_{i,s,t} = \alpha_s F_J(i,s,t) + (1-\alpha_s) F_V(i,s,t),
-\end{equation}
-where $\alpha_s$ is the judges' weight (we use $\alpha_s=0.5$ as the default rule). The functions $F_J$ and $F_V$ depend on the voting rule:
+\subsection{Results}
+% PLACEHOLDER — from stage2_solving/validation.md. Reference figures.
+Results paragraph with hard numbers.
 
-\textbf{Percentage rule:}
-\begin{equation}
-F_J(i,s,t)=\tilde{J}_{i,s,t}, \qquad F_V(i,s,t)=\tilde{V}_{i,s,t}.
-\end{equation}
+% (Repeat \section{Task N: ...} for each sub-question.)
 
-\textbf{Rank rule:} Let $R^J_{i,s,t}$ and $R^V_{i,s,t}$ be the rank (1 is best) of judges' scores and fan votes. Map ranks into rank-shares:
-\begin{equation}
-F_J(i,s,t)=\frac{N_{s,t}-R^J_{i,s,t}+1}{\sum_{j \in C_{s,t}} (N_{s,t}-R^J_{j,s,t}+1)},
-\end{equation}
-\begin{equation}
-F_V(i,s,t)=\frac{N_{s,t}-R^V_{i,s,t}+1}{\sum_{j \in C_{s,t}} (N_{s,t}-R^V_{j,s,t}+1)}.
-\end{equation}
+%--------------------------------- Sensitivity
+\section{Sensitivity Analysis}
+% PLACEHOLDER — one subsection per `to-sweep` assumption from
+% stage1_modeling/assumptions.md, populated from stage2_solving/sensitivity.md.
+Sensitivity discussion.
 
-\subsubsection{Elimination-Consistency Constraints}
-Let $E_{s,t}$ be the set of eliminated contestants in week $t$. For any survivor $i \in C_{s,t} \setminus E_{s,t}$ and eliminated contestant $j \in E_{s,t}$, we require
-\begin{equation}
-S_{i,s,t} \ge S_{j,s,t} .
-\end{equation}
-These linear inequalities define a feasible polytope for $\tilde{\mathbf{V}}_{s,t}$, which we enforce via a differentiable loss.
-
-\subsection{Solution Method}
-\subsubsection{Loss Function}
-We penalize violations of elimination order with a softplus ranking loss:
-\begin{equation}
-\varepsilon_{s,t}(\tilde{\mathbf{V}})=\sum_{i \in C_{s,t}\setminus E_{s,t}}\sum_{j \in E_{s,t}}\log\!\left(1+\exp\!\left(-\frac{S_{i,s,t}-S_{j,s,t}}{\tau}\right)\right),
-\end{equation}
-where $\tau>0$ is a temperature that reflects randomness in head-to-head outcomes (e.g., dance-offs). We test values such as $0.1$ and $0.01$.
-
-\subsubsection{Optimization with Constraints}
-For each season-week, we solve
-\begin{equation}
-\min_{\tilde{\mathbf{V}}_{s,t}} \; \varepsilon_{s,t}(\tilde{\mathbf{V}})
-\end{equation}
-subject to simplex constraints
-\begin{equation}
-\tilde{V}_{i,s,t} \ge 0, \qquad \sum_{i \in C_{s,t}} \tilde{V}_{i,s,t}=1.
-\end{equation}
-
-\subsubsection{No-Elimination Weeks}
-If no elimination occurs, we assume the show would have eliminated the lowest combined score but retained the cast because too few contestants would remain. We therefore regularize toward a near-uniform vote split and low score variance:
-\begin{equation}
-\min \; \mathrm{Var}(S_{s,t}) + \lambda\left\|\tilde{\mathbf{V}}_{s,t}-\frac{1}{N_{s,t}}\mathbf{1}\right\|^2 .
-\end{equation}
-
-\subsubsection{Consistency and Stability Metrics}
-We report an elimination-consistency rate
-\begin{equation}
-L=\frac{1}{|T|}\sum_{(s,t)\in T}\mathbf{1}\!\left(\arg\min_{i \in C_{s,t}} S_{i,s,t} \in E_{s,t}\right),
-\end{equation}
-where $T$ is the set of elimination weeks. We also define a cross-week stability index for each contestant:
-\begin{equation}
-P_i=\frac{1}{W_i-1}\sum_{t=2}^{W_i}(\tilde{V}_{i,s,t}-\tilde{V}_{i,s,t-1})^2.
-\end{equation}
-Lower $P_i$ indicates smoother fan support across weeks.
-
-\subsection{Results Analysis}
-Figure \Cref{fig:task1_tradeoff} illustrates the consistency--smoothness tradeoff. As the optimization prioritizes elimination consistency, week-to-week stability declines beyond a knee point, suggesting diminishing returns from further tightening the constraint. We choose a regime that balances accurate eliminations with realistic vote dynamics.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{task1-q1_consistency_with_smoothness.pdf}
-    \caption{Consistency vs. smoothness tradeoff for inferred fan votes.}
-    \label{fig:task1_tradeoff}
-\end{figure}
-
-\subsection{Model Validation}
-Season-level consistency is stable across most seasons (Fig. \Cref{fig:task1_season_consistency}), indicating that the inverse vote reconstruction generalizes beyond a few isolated weeks. This supports the use of inferred fan votes as inputs to Task 2 comparisons.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{task1-season_consistency_model1.pdf}
-    \caption{Elimination consistency by season under the reconstruction model.}
-    \label{fig:task1_season_consistency}
-\end{figure}
-
-% ------------------------------------------------------------
-% Task 2
-\section{Task 2: Comparing Combination Rules and Judge-Save}
-
-\subsection{Problem Analysis}
-Task 2 evaluates how the two official aggregation rules---rank and percentage---would have changed eliminations and final placements across seasons, using the inferred fan votes from Task 1. We also assess seasons with well-known judge--fan conflicts (e.g., Jerry Rice in Season 2, Billy Ray Cyrus in Season 4, Bristol Palin in Season 11, Bobby Bones in Season 27) and analyze the judge-save mechanism introduced around Season 28. The core questions are: (i) which rule aligns more with audience preference, (ii) how a judge-save would shift outcomes, and (iii) what rule should be recommended going forward.
-
-\subsection{Model Construction and Solution Method}
-
-We reuse the combined score $S_{i,s,t}=\alpha_s F_J(i,s,t)+(1-\alpha_s)F_V(i,s,t)$ from Task 1, where $F_J$ and $F_V$ depend on the aggregation rule (percentage or rank). Algorithm~\ref{alg:task2} summarizes the counterfactual simulation and evaluation metrics.
-
-\begin{algorithm}[H]
-\caption{Counterfactual Simulation and Rule Comparison}\label{alg:task2}
-\KwIn{Inferred fan votes $\tilde{V}_{i,s,t}$, judge scores $\tilde{J}_{i,s,t}$, elimination counts $k_{s,t}$}
-\KwOut{Disagreement rate $DR_s$, alignment rate $AR_s$, controversy scores}
-
-\tcp{Combined Score Functions}
-\textbf{Percentage:} $S^{\mathrm{pct}}_{i,s,t}=\alpha_s\tilde{J}_{i,s,t}+(1-\alpha_s)\tilde{V}_{i,s,t}$\;
-\textbf{Rank:} $F(i)=\frac{N_{s,t}-R_{i,s,t}+1}{\sum_{j}(N_{s,t}-R_{j,s,t}+1)}$, then $S^{\mathrm{rank}}_{i,s,t}=\alpha_s F_J(i)+(1-\alpha_s)F_V(i)$\;
-
-\tcp{Weekly Elimination Prediction}
-$\widehat{E}^{\mathrm{pct}}_{s,t}\leftarrow\arg\min_{k_{s,t}}\{S^{\mathrm{pct}}_{i,s,t}\}$; \quad $\widehat{E}^{\mathrm{rank}}_{s,t}\leftarrow\arg\min_{k_{s,t}}\{S^{\mathrm{rank}}_{i,s,t}\}$\;
-
-\tcp{Disagreement and Audience Alignment}
-$D_{s,t}\leftarrow\mathbf{1}(\widehat{E}^{\mathrm{pct}}_{s,t}\neq \widehat{E}^{\mathrm{rank}}_{s,t})$; \quad $DR_s\leftarrow\frac{1}{|T_s|}\sum_{t}D_{s,t}$\;
-\If{$D_{s,t}=1$}{
-    $\overline{V}^{\mathrm{pct}}_{s,t}\leftarrow\mathrm{mean}_{i\in\widehat{E}^{\mathrm{pct}}}\tilde{V}_{i,s,t}$; \quad $\overline{V}^{\mathrm{rank}}_{s,t}\leftarrow\mathrm{mean}_{i\in\widehat{E}^{\mathrm{rank}}}\tilde{V}_{i,s,t}$\;
-    $A_{s,t}\leftarrow\mathbf{1}(\overline{V}^{\mathrm{pct}}_{s,t}<\overline{V}^{\mathrm{rank}}_{s,t})$\;
-}
-$AR_s\leftarrow\frac{\sum_{t}A_{s,t}D_{s,t}}{\sum_{t}D_{s,t}}$ \tcp*{$AR_s>0.5$ implies percentage aligns better with fans}
-
-\tcp{Controversy Identification}
-$\Delta_{i,s,t}\leftarrow\tilde{V}_{i,s,t}-\tilde{J}_{i,s,t}$; \quad $G_{i,s,t}\leftarrow R^J_{i,s,t}-R^V_{i,s,t}$\;
-$\mathrm{Controversy}_{i,s}\leftarrow\mathrm{median}_{t}(G_{i,s,t})$\;
-
-\tcp{Judge-Save Mechanism}
-$B_{s,t}\leftarrow\arg\min_{2}\{S_{i,s,t}\}$; \quad $\widehat{e}^{\mathrm{save}}_{s,t}\leftarrow\arg\min_{i\in B_{s,t}}\tilde{J}_{i,s,t}$\;
-\end{algorithm}
-
-\subsection{Results Analysis}
-Across seasons, the two rules often disagree on which contestants should be eliminated, and the disagreement rate varies substantially by season (Fig. \Cref{fig:task2_disagree_audience}). When disagreement occurs, the percentage rule more frequently eliminates lower-vote contestants, indicating stronger alignment with audience preference in those weeks. The margin comparison in Fig. \Cref{fig:task2_margin} shows that the rank rule can compress score gaps, making outcomes more sensitive to small vote shifts, whereas the percentage rule preserves larger vote-share differences.
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{task2-disagreement_by_season.pdf}
-        \caption{Disagreement rate by season.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{task2-audience_leaning_by_season.pdf}
-        \caption{Audience-leaning rate by season.}
-    \end{subfigure}
-    \caption{Rule disagreement and audience alignment across seasons.}
-    \label{fig:task2_disagree_audience}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=\linewidth]{task2-margin_comparison.pdf}
-    \caption{Margin comparison between percentage and rank rules.}
-    \label{fig:task2_margin}
-\end{figure}
-
-Season 27 illustrates the judge--fan tension emphasized in the problem statement. Figure \Cref{fig:task2_s27_delta} visualizes the week-by-week fan--judge gap, while Fig. \Cref{fig:task2_s27_cases} summarizes the season ranking dynamics and support trajectory under the inferred fan votes.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.82\textwidth]{task2-season27_heatmap_delta_VminusJ.pdf}
-    \caption{Season 27 heatmap of $\tilde{V}-\tilde{J}$ (fan minus judge).}
-    \label{fig:task2_s27_delta}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{s27_ranking.png}
-        \caption{Ranking comparison.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{s27_trajectory.png}
-        \caption{Support trajectory.}
-    \end{subfigure}
-    \caption{Season 27 case study snapshots.}
-    \label{fig:task2_s27_cases}
-\end{figure}
-
-\subsection{Model Validation}
-We verify the rule mechanics with analytical weight and sensitivity curves (\Cref{fig:task2_rule_math}), ensuring the rank-share mapping and vote-share sensitivity behave as intended. In addition, uncertainty diagnostics across weeks and top celebrities (\Cref{fig:task2_uncertainty_week}) show that inference uncertainty is heterogeneous but bounded, supporting robust cross-season comparisons.
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{task2-math_rank_share_weights_N10.pdf}
-        \caption{Rank-share weights ($N=10$).}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[t]{0.48\textwidth}
-        \centering
-        \includegraphics[width=\textwidth]{task2-math_sensitivity_vote_share_N10.pdf}
-        \caption{Vote-share sensitivity ($N=10$).}
-    \end{subfigure}
-    \caption{Rule mechanics checks.}
-    \label{fig:task2_rule_math}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.72\textwidth]{task2-uncertainty_boxplot_by_week.pdf}
-    \caption{Uncertainty diagnostics by week for inferred fan votes.}
-    \label{fig:task2_uncertainty_week}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.72\textwidth]{task2-uncertainty_boxplot_by_celebrity_top20.pdf}
-    \caption{Uncertainty diagnostics by top celebrities for inferred fan votes.}
-    \label{fig:task2_uncertainty_celebs}
-\end{figure}
-
-% ------------------------------------------------------------
-% Task 3
-\section{Task 3: Feature Effects on Judges and Fans}
-
-\subsection{Problem Analysis}
-Task 3 asks how celebrity attributes and professional partners affect competition outcomes, and whether their effects differ between judges' scores and fan votes. Directly inferring causal effects from scores alone is ill-posed, so we construct a forward, interpretable model that predicts both judge and fan outcomes from contestant features. We then interpret attention weights as a structured proxy for how different features are emphasized, while using regularization to limit overfitting in a small-sample setting.
-
-\subsection{Model Construction}
-\subsubsection{Tokenized Feature Representation}
-Each contestant is encoded as attribute tokens. Categorical attributes (partner, industry, state, country) are embedded via learned lookup tables, while numerical attributes (age, progress, popularity, partner history) are projected with linear layers. The resulting token embedding matrix is
-\begin{equation}
-\mathbf{X}\in\mathbb{R}^{T\times d},
-\end{equation}
-where $T$ is the number of tokens and $d$ is the embedding dimension. We evaluate both a static token set (5 tokens) and a dynamic token set (7 tokens) that includes time-varying signals.
-
-\subsubsection{Dynamic K/V Encoding and Semantic Tokens}
-In the dynamic mode, we encode a mixed token set that combines categorical identifiers with engineered numerical signals. Categorical tokens (e.g., home state and country/region) are indexed with a vocabulary and embedded via independent lookup tables, while numerical tokens are z-scored and projected through linear layers. The dynamic numerical tokens include partner\_score\_z, industry\_skill\_z, age\_z, progress\_z, and popularity\_z. This design injects semantic meaning through numeric projections rather than relying solely on categorical co-occurrence.
-
-Formally, token embeddings are produced by an attribute embedder:
-\begin{itemize}
-    \item Categorical token $c_j$: $\mathbf{e}_j=\mathrm{Embed}_j(c_j)$.
-    \item Numerical token $z_j$: $\mathbf{e}_j=\mathrm{Linear}_j(z_j)$.
-\end{itemize}
-Stacking all tokens yields $\mathbf{X}$, and we generate
-\begin{equation}
-\mathbf{K}=\mathbf{X}\mathbf{W}_K,\qquad \mathbf{V}=\mathbf{X}\mathbf{W}_V.
-\end{equation}
-Auxiliary control features (e.g., season\_stage\_z and hist\_mask) enter a separate control path and do not participate in the K/V token sequence.
-
-\subsubsection{Multi-Head Attention with Dual Scorers}
-We adopt a lightweight multi-head attention module to model how judges and fans weigh tokens. Let $\mathbf{Q}\in\mathbb{R}^{H\times d}$ be learnable query prototypes, and
-\begin{equation}
-\mathbf{K}=\mathbf{X}\mathbf{W}_K,\qquad \mathbf{V}=\mathbf{X}\mathbf{W}_V.
-\end{equation}
-Attention weights are computed as
-\begin{equation}
-\mathbf{A}=\mathrm{softmax}\!\left( \frac{\gamma\,\mathbf{Q}\mathbf{K}^\top}{\tau} \right)\in\mathbb{R}^{H\times T},
-\end{equation}
-where $\tau$ is a temperature and $\gamma$ is a logit scale. The head-wise context vectors are
-\begin{equation}
-\mathbf{c}_h=\sum_{t=1}^{T}A_{h,t}\mathbf{V}_t,\qquad h=1,\dots,H.
-\end{equation}
-We concatenate $\{\mathbf{c}_h\}$ and predict judge and fan scores with two linear heads:
-\begin{equation}
-\hat{y}^{\text{judge}}=\mathbf{W}_{\text{judge}}^\top \mathrm{vec}(\mathbf{C}),\qquad
-\hat{y}^{\text{fan}}=\mathbf{W}_{\text{fan}}^\top \mathrm{vec}(\mathbf{C}),
-\end{equation}
-where $\mathbf{C}=[\mathbf{c}_1;\dots;\mathbf{c}_H]$.
-
-\Cref{fig:task3_flowchart} summarizes the end-to-end pipeline from raw data to dual-channel predictions, highlighting preprocessing, tokenization, attention scoring, and the regularized training objective.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.92\textwidth]{task3-flowchart.png}
-    \caption{Task 3 pipeline: preprocessing, tokenization, attention scoring, and dual outputs.}
-    \label{fig:task3_flowchart}
-\end{figure}
-
-\subsection{Solution Method}
-\subsubsection{Loss Function and Regularization}
-We minimize separate losses for judges and fans while encouraging interpretable attention patterns:
-\begin{equation}
-\mathcal{L}_{\text{judge}}=\mathcal{L}_{\text{MSE}}^{\text{judge}}+\lambda_{\text{head}}\mathcal{L}_{\text{head}},
-\end{equation}
-\begin{equation}
-\mathcal{L}_{\text{fan}}=\mathcal{L}_{\text{MSE}}^{\text{fan}}+\lambda_{\text{head}}\mathcal{L}_{\text{head}}.
-\tag{38}
-\end{equation}
-Here, $\mathcal{L}_{\text{head}}$ increases head-level distributional divergence to encourage diversified attention patterns.
-
-\subsubsection{Initialization and Optimization}
-To stabilize training, we initialize $\mathbf{Q}$ using ridge regressions on week-level averaged embeddings, normalize the resulting vectors, cluster them with $k$-means, and apply QR orthogonalization. Parameters are then optimized by jointly minimizing $\mathcal{L}_{\text{judge}}$ and $\mathcal{L}_{\text{fan}}$ with standard gradient-based updates. After training, attention weights are inspected to infer which attributes systematically influence judges versus fans.
-
-\subsection{Results Analysis}
-We use Seasons 3--27 (the percentage-rule era with ample data) as the primary set for the ablation. Judges and fans are treated as separate queries, and we compare two K/V designs: a static baseline using only official attributes and a semantic (dynamic) design with engineered numerical features.
-
-\textbf{Static K/V (official attributes only).} In the static setting, K/V tokens are built from the official CSV fields: ballroom partner, celebrity industry, home state, home country/region, and age. Categorical fields are embedded as discrete tokens and age is a single numeric token. Because the K/V encoding contains little semantic structure beyond category identity, the learned attention tends to distribute nearly uniformly across heads, reflecting mostly noise rather than interpretable preference. This is visible in Fig. \Cref{fig:task3_static_attn}.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.90\textwidth]{task3-s2_s27_static_attn_weights_heatmap_judge_vs_fan.pdf}
-    \caption{Seasons 3--27: Static-token attention heatmaps for judges and fans.}
-    \label{fig:task3_static_attn}
-\end{figure}
-
-\textbf{Semantic K/V (engineered numerical tokens).} In the semantic setting, K/V tokens include partner\_score\_z (partner history composite), industry\_skill\_z (industry skill index), age\_z (global z-score with scaling), progress\_z (lag-slope of recent judge scores with history masking), and popularity\_z (external visibility proxy built from public metadata). Numerical tokens are projected linearly, so their magnitudes carry semantic meaning into K/V. The resulting heatmaps show distinct head behaviors for judges and fans (Fig. \Cref{fig:task3_semantic_attn}). For judges, head 0 emphasizes progress, suggesting that visible improvement draws professional attention; head 1 highlights industry skill; head 2 responds to partner skill (strong coaches accelerate technical gains); and head 3 reflects age-related bias. The head weights are around $0.2$ rather than dominant, indicating statistical tendencies rather than decisive causal factors. For fans, head 2 assigns a larger share (about $0.5$) to partner skill, implying that the professional partner is salient beyond pure coaching quality. Head 1 combines home-state identity with popularity, consistent with regional affinity and fame effects. Heads 0 and 3 show joint influence of progress and age, aligning with an encouragement effect in audience voting.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.90\textwidth]{task3-s2_s27_semantically_attn_weights_heatmap_judge_vs_fan.pdf}
-    \caption{Seasons 3--27: Semantic-token attention heatmaps for judges and fans.}
-    \label{fig:task3_semantic_attn}
-\end{figure}
-
-\subsection{Model Validation}
-The static-to-semantic ablation provides a built-in sanity check: when only categorical identities are used, attention is diffuse; when semantically engineered numeric tokens are injected, heads specialize in plausible directions. This contrast supports the interpretability of the attention patterns while reminding that small-sample limitations prevent strong causal claims.
-
-% ------------------------------------------------------------
-% Task 4
-\section{Task 4: A Fairer Voting System}
-
-\subsection{Problem Analysis}
-The problem statement asks us to propose a voting system that is more ``fair'' than existing approaches. Drawing on Tasks 1--3, we identify two key tensions: (i) audience subjectivity intensifies late in the season as emotional attachment grows, and (ii) pure judge control undermines fan engagement. The challenge is to balance these competing demands.
-
-\subsection{Proposed Hybrid Policy}
-We propose a \textbf{phased aggregation policy}:
-\begin{enumerate}
-    \item \textbf{Early Phase (Weeks 1 to $\lfloor W/2 \rfloor$):} Use \textit{percentage-based aggregation}. This preserves vote-share differences and maximizes audience influence when emotional attachment is still developing.
-    \item \textbf{Late Phase (Weeks $\lfloor W/2 \rfloor + 1$ to $W$):} Introduce a \textit{judge-selected bottom-three elimination}. The combined score identifies the bottom three, and judges vote to determine which one is eliminated.
-\end{enumerate}
-For a standard 14-week season, the transition occurs at \textbf{Week 7}.
-
-\subsection{Why This System Is Fairer}
-\begin{itemize}
-    \item \textbf{Audience representation.} Early-phase percentage aggregation ensures fan votes carry real weight.
-    \item \textbf{Technical credibility.} Late-phase judge intervention prevents outcomes like Season~27, where Bobby Bones won despite consistently low judge scores.
-    \item \textbf{Transparency.} The rule is simple: ``Fans decide early, judges have a say late.''
-\end{itemize}
-
-\subsection{Counterfactual Validation}
-Applying the hybrid policy retroactively to Seasons 3--27: Bobby Bones (S27) would have appeared in the bottom three in Weeks 8--10 and likely been eliminated; Bristol Palin (S11) would have faced judge intervention repeatedly. Overall, the hybrid rule changes winners in $\sim$8\% of seasons and alters top-3 compositions in $\sim$23\% of seasons with large fan--judge divergence.
+%--------------------------------- Validation
+\section{Model Validation}
+% PLACEHOLDER — from stage2_solving/validation.md. Baseline comparison,
+% small-instance exact Gap (if applicable), ablation findings.
+Validation discussion.

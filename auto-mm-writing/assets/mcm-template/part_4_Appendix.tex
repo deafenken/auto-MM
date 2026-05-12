@@ -1,41 +1,44 @@
-% AI Use Report (does not count toward the 25-page limit)
+% part_4_Appendix.tex — AI Use Report (mandatory for MCM/ICM 2024+)
+% Does NOT count toward the 25-page main paper limit.
+% auto-mm-writing drafts this from progress.jsonl events; the team reviews
+% and edits before final build.
+
 \clearpage
 \section*{AI Use Report}
 \addcontentsline{toc}{section}{AI Use Report}
 \label{sec:ai_report}
 
-This report documents our use of generative AI tools in compliance with the COMAP AI use policy for MCM/ICM 2026.
+\subsection*{Tools used}
 
-\subsection*{AI Tools and Usage Summary}
-
-\begin{table}[htbp]
-\centering
-\begin{tabular}{p{3cm}p{4.5cm}p{6cm}}
-\toprule
-\textbf{AI Tool} & \textbf{Usage Category} & \textbf{Specific Applications} \\
-\midrule
-Claude (Anthropic) & Code assistance & Debugging Python scripts; suggesting library functions for optimization and visualization \\
-\addlinespace
-ChatGPT (OpenAI) & Writing \& translation & Polishing English prose; translating draft sections from Chinese; improving LaTeX formatting \\
-\addlinespace
-GitHub Copilot & Code completion & Auto-completing boilerplate code for data loading and plotting \\
-\bottomrule
+\begin{tabular}{l l l}
+    \hline
+    Tool & Version / Model & Used for \\
+    \hline
+    Claude & <Opus 4.7 / latest> & High-level planning, draft prose, code review \\
+    auto-mm skill & <git sha or version> & End-to-end orchestration of this contest run \\
+    % Add other tools used (GitHub Copilot, Wolfram Alpha, image-gen models, etc.)
+    \hline
 \end{tabular}
-\end{table}
 
-\subsection*{What AI Was Used For}
-\begin{itemize}
-    \item \textbf{Drafting and editing:} Refining narrative flow in the Introduction, Task descriptions, and Memo sections; improving grammar and academic tone.
-    \item \textbf{Code scaffolding:} Generating initial templates for data preprocessing, loss function implementation, and attention mechanism modules; suggesting NumPy/PyTorch syntax.
-    \item \textbf{LaTeX formatting:} Adjusting equation alignment, table layouts, and figure placement commands.
-\end{itemize}
+\subsection*{Use cases}
 
-\subsection*{What AI Was NOT Used For}
-\begin{itemize}
-    \item \textbf{Data generation:} All numerical results come exclusively from the official \texttt{2026\_MCM\_Problem\_C\_Data.csv} and documented external sources (Wikidata, IMDb).
-    \item \textbf{Model design decisions:} The choice of loss functions, regularization strategies, attention architecture, and hybrid policy were determined solely by the team.
-    \item \textbf{Final conclusions:} All interpretations, recommendations, and the memo to producers reflect human judgment after reviewing model outputs.
-\end{itemize}
+\textbf{Use case 1 — <e.g. assumption list drafting>}\\
+Tool: <which one>. Date: <when>.\\
+Prompt summary: ``<short summary>''.\\
+Output: <what the tool produced; how the team integrated it>.
 
-\subsection*{Human Oversight and Verification}
-Every AI-generated draft was reviewed, revised, and validated by team members. We cross-checked AI-suggested code against expected outputs and manually verified that all figures, tables, and numerical claims match our computations. The final paper represents our own analysis and reasoning, with AI serving only as an assistive tool.
+\textbf{Use case 2 — <e.g. code skeleton>}\\
+Tool: <which one>. Date: <when>.\\
+Prompt summary: ``<short summary>''.\\
+Output: <what the tool produced; how the team integrated it>.
+
+\textbf{Use case 3 — <e.g. proofreading>}\\
+Tool: <which one>. Used for: <scope>.
+
+% Add more use cases as appropriate. Be honest. Reviewers do not penalize honesty.
+
+\subsection*{Acknowledgment}
+
+The team remains fully responsible for the correctness, originality, and
+integrity of this submission. AI-generated content was reviewed, edited,
+and verified by team members before inclusion.

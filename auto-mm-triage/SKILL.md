@@ -161,19 +161,23 @@ Wait. Do not modify any state until the user replies. If 30 minutes pass with no
 Once the user replies "go X":
 
 ```bash
-echo "X" > runs/<provisional_slug>/.tmp_chosen
-# atomically update run.yaml
+PROV=runs/<provisional_slug>
+# atomically update run.yaml via .tmp + rename
 python3 -c "
-import yaml, pathlib
-p = pathlib.Path('runs/<provisional_slug>/run.yaml')
+import yaml, pathlib, os
+p = pathlib.Path('$PROV/run.yaml')
+tmp = p.with_suffix('.yaml.tmp')
 data = yaml.safe_load(p.read_text())
 data['chosen_problem'] = 'X'
 data['run_slug'] = f\"{data['contest']['family']}-{data['contest']['year']}-X\"
-p.write_text(yaml.safe_dump(data))
+tmp.write_text(yaml.safe_dump(data, sort_keys=False))
+os.replace(tmp, p)        # atomic on POSIX
 "
-# rename directory atomically
-mv -n runs/<provisional_slug>/ runs/<contest>-<year>-X/
+# rename directory atomically. mv -n fails if target exists — see escalation below.
+mv -n "$PROV" "runs/<contest>-<year>-X"
 ```
+
+Order matters: write `run.yaml` with the new `chosen_problem`+`run_slug` FIRST, then rename the directory. If the process dies between the two, resume sees `run.yaml.chosen_problem != null` inside the still-provisional directory and re-attempts the rename idempotently.
 
 If `mv -n` fails (target exists), escalate — the user may have a previous run with the same slug.
 

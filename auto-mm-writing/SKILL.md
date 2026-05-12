@@ -55,23 +55,36 @@ runs/<run_slug>/stage3_writing/
 
 ### 1. Copy the template
 
-Based on `run.yaml.contest.family`:
+Based on `run.yaml.contest.family`. Uses plain `grep`/`awk` — no `yq` dependency.
 
 ```bash
-SLUG=<run_slug>
-FAMILY=$(yq '.contest.family' runs/$SLUG/run.yaml)
+SLUG="<run_slug>"
+RUN="runs/$SLUG"
+
+# extract contest.family from run.yaml without yq
+FAMILY=$(awk '/^contest:/{p=1;next} p && /^[^[:space:]]/{p=0} p && /family:/{print $2; exit}' "$RUN/run.yaml")
 
 case "$FAMILY" in
-  mcm|MCM) TPL=auto-mm-writing/assets/mcm-template ;;
+  mcm|MCM)   TPL=auto-mm-writing/assets/mcm-template ;;
   cumcm|CUMCM) TPL=auto-mm-writing/assets/cumcm-template ;;
-  *) echo "Unknown family — see references/contest-types.md"; exit 1 ;;
+  *) echo "Unknown contest family: $FAMILY — see auto-mm/references/contest-types.md"; exit 1 ;;
 esac
 
-mkdir -p runs/$SLUG/stage3_writing/paper
-cp -r $TPL/* runs/$SLUG/stage3_writing/paper/
+# For CUMCM: refuse to proceed if the template is only the placeholder
+if [[ "$FAMILY" =~ ^(cumcm|CUMCM)$ ]]; then
+    if ! ls "$TPL"/*.tex >/dev/null 2>&1; then
+        echo "ESCALATE: cumcm-template/ contains no .tex file. Drop the year's official template in and re-invoke." >&2
+        exit 1
+    fi
+fi
+
+mkdir -p "$RUN/stage3_writing/paper"
+cp -r "$TPL/"* "$RUN/stage3_writing/paper/"
+# remove the README we ship next to the template files (it's documentation, not a paper source)
+rm -f "$RUN/stage3_writing/paper/README.md"
 ```
 
-If `cumcm-template/` contains only the placeholder README, escalate: ask the user to drop the year's template in.
+If `cumcm-template/` contains only the placeholder README, escalate per `auto-mm/references/escalation-policy.md` — ask the user to drop the year's template in.
 
 ### 2. Symlink figures
 
@@ -183,45 +196,72 @@ Any "Required: yes, Present: no" row blocks the hand-off.
 
 ### 8. Anonymity scan (mandatory; Rule 2)
 
-Run the scan from `references/anonymity-check.md`. It checks:
+Run `auto-mm-writing/assets/anonymity_scan.py` (full spec in `references/anonymity-check.md`). What it actually checks:
 
-- PDF metadata (`/Author`, `/Creator`, `/Producer`, `/Title`).
-- PDF body text for forbidden patterns (configurable per contest):
-  - MCM: common Western given names + university list + advisor titles.
-  - CUMCM: 中文姓名候选, 学校列表, 学院, 指导老师, 指导教师.
-- File paths leaked from code listings (`/Users/<name>`, `/Volumes/<name>`, `/home/<name>`).
-- Git remote URLs in code listings.
+- **PDF metadata**: `/Author`, `/Title`, `/Subject`, `/Keywords` (Producer / Creator are excluded — xelatex always writes engine strings there, not PII).
+- **PDF body text** + **`.tex` / `.bib` source** for the patterns below. `.sty` and `.cls` files are NOT scanned (template/style files; not the team's identity).
+  - MCM (English): `University of X`, `X University`, `Prof. X`, `Dr. X` (titled-name forms — not bare given names).
+  - CUMCM (中文): `姓名:…`, `学校:…`, `学院:…`, `指导老师:…`, `指导教师:…`, `X大学`, `X学院`, `教授`/`副教授`/`讲师`.
+- **File paths**: `/Users/<name>`, `/Volumes/<name>`, `/home/<name>`, `C:\Users\<name>` — these leak when code listings include hardcoded paths.
+- **Git remotes**: `github.com/<user>/<repo>`, `gitee.com/<user>/<repo>` — these leak when code listings include `git clone …` lines.
 
-Any hit → write `anonymity_report.md` with the match + file:line and **block the submission**. Escalate to the user.
+Any hit → the scanner returns exit code 1, writes `anonymity_report.json` with the match + file:line, and **blocks the submission**. Escalate to the user.
 
 ### 9. Submission package
 
-After all gates pass:
+After all gates pass. All paths absolute from repo root — do NOT `cd` partway through.
 
 ```bash
-SUBMIT=runs/$SLUG/stage3_writing/submission
-mkdir -p $SUBMIT/<root>     # root name per contest convention
-cp paper/main.pdf $SUBMIT/<root>/<TeamControlNumber>.pdf
-# code package
-mkdir -p $SUBMIT/<root>/code
-cp -r ../../stage2_solving/pipeline.py ../../stage2_solving/src $SUBMIT/<root>/code/
-# supporting material per contest's rubric (figures, data, references)
-...
-# zip with macOS metadata filtered
-cd $SUBMIT
-zip -r -X submit.zip <root> -x "*/._*" "*/.DS_Store" "*/~$*" "*/__pycache__/*" "*/.git/*"
-unzip -l submit.zip | head -50  # verify
+# Always run from repo root (where the runs/ directory lives)
+SLUG="<run_slug>"
+RUN="runs/$SLUG"
+ROOT_NAME="<root_name>"             # e.g. team control number for MCM, 报名号 for CUMCM
+SUBMIT="$RUN/stage3_writing/submission"
+ROOT="$SUBMIT/$ROOT_NAME"
+
+mkdir -p "$ROOT"
+
+# paper PDF
+cp "$RUN/stage3_writing/paper/main.pdf" "$ROOT/$ROOT_NAME.pdf"
+
+# AI report (MCM 2024+) — typically already inside main.pdf via part_4_Appendix.tex,
+# so this is only needed if the contest portal asks for it separately
+# cp "$RUN/stage3_writing/paper/ai-report.pdf" "$ROOT/ai-report.pdf"
+
+# code
+mkdir -p "$ROOT/code"
+cp "$RUN/stage2_solving/pipeline.py" "$ROOT/code/"
+cp -r "$RUN/stage2_solving/src" "$ROOT/code/"
+find "$ROOT/code" -name __pycache__ -type d -exec rm -rf {} + 2>/dev/null || true
+
+# supporting material per contest convention
+mkdir -p "$ROOT/supporting/figures-raw" "$ROOT/supporting/data-derived"
+cp "$RUN/stage2_solving/figures/"*.pdf "$ROOT/supporting/figures-raw/" 2>/dev/null || true
+
+# zip — note: the zip command runs from inside $SUBMIT so paths in the
+# archive are relative to $ROOT_NAME, not to the repo root.
+( cd "$SUBMIT" && zip -r -X submit.zip "$ROOT_NAME" \
+    -x "*/._*" "*/.DS_Store" "*/~$*" \
+       "*/__pycache__/*" "*/.git/*" "*/.gitignore" \
+       "*/*.pyc" "*/*.pyo" \
+       "*/*.aux" "*/*.log" "*/*.out" "*/*.toc" "*/main.synctex.gz" )
+
+# verify
+unzip -l "$SUBMIT/submit.zip" | head -50
 ```
 
 Run a final post-zip check:
 
 ```bash
-# decompress to /tmp, rebuild PDF text scan
-unzip -q submit.zip -d /tmp/auto-mm-verify
-ls -lR /tmp/auto-mm-verify | head
+# Decompress to a temp directory and verify no forbidden files leaked through
+TMP=$(mktemp -d)
+unzip -q "$SUBMIT/submit.zip" -d "$TMP"
+find "$TMP" \( -name "._*" -o -name ".DS_Store" -o -name "__pycache__" \) -print
+ls -lR "$TMP" | head -30
+rm -rf "$TMP"
 ```
 
-If the zip contains forbidden patterns (`.DS_Store`, `._*`) → re-zip with the filter; the macOS `zip -X` flag handles this but verify.
+If the zip contains forbidden patterns (`.DS_Store`, `._*`) → re-zip with the filter; the macOS `zip -X` flag normally handles AppleDouble, but verify.
 
 ### 10. Write `hand_off.md`
 

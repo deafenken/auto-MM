@@ -1,171 +1,69 @@
-% 正文开始
+% part_1_pre.tex — placeholder scaffold
+% auto-mm-writing fills each section from upstream stage artifacts:
+%   stage0_triage/contest_brief.md       → Background
+%   inputs/problems/<X>.pdf (paraphrase) → Problem Restatement
+%   stage2_solving/validation.md         → Our Work
+%   stage1_modeling/assumptions.md       → Assumptions
+%   stage1_modeling/notation.md          → Notation
+
 % Chapter 1: Introduction
 \section{Introduction}
 \subsection{Background}
-\textit{Dancing with the Stars} (DWTS) is the U.S. adaptation of the international franchise rooted in the British show \textit{Strictly Come Dancing}. The U.S. version has completed 34 seasons. Each season pairs celebrities with professional dancers who perform weekly. A panel of expert judges assigns technical scores (typically on a 1--10 scale), while viewers vote by phone or online to keep their favorite couple. Fans can vote multiple times up to a weekly limit and cannot vote to eliminate a couple. Judges' scores and fan votes are combined to determine the weekly elimination, and the same combined rule ranks finalists.
-
-In the U.S. version, Seasons 1--2 combined judges and fan votes by rank. Season 2 raised concerns when Jerry Rice reached the finals despite low judges' scores, prompting a change to a percentage-based combination in Seasons 3--27. Another controversy occurred in Season 27 when Bobby Bones won with consistently low judges' scores. Beginning in Season 28, the show introduced a judge save: the bottom two were determined by the combined score, and judges selected which couple to eliminate. Around this time the show also returned to rank-based aggregation; the exact season is unknown, and we follow the problem statement's assumption that it was Season 28. These episodes highlight a persistent tension between technical merit and audience preference.
+% PLACEHOLDER — auto-mm-writing replaces with a 1-2 paragraph background
+% derived from stage0_triage/contest_brief.md and the problem statement.
+% Do NOT paste the whole problem PDF here.
+Background text goes here.
 
 \subsection{Problem Restatement}
+% PLACEHOLDER — auto-mm-writing lists each sub-question with a one-sentence brief.
 \begin{itemize}
-    \setlength{\parsep}{0ex} %段落间距
-    \setlength{\topsep}{2ex} %列表到上下文的垂直距离
-    \setlength{\itemsep}{1ex} %条目间距
-    \item \textbf{Task 1.} Infer the fan vote outcomes from judges' scores and weekly eliminations. Provide two additional metrics: (i) a consistency index between inferred fan votes and actual eliminations; (ii) a certainty analysis for the inferred total fan vote, reported by contestant and by week.
-    \item \textbf{Task 2.} Using the Task 1 estimates together with judges' scores, eliminations, and champions, conduct three analyses: (i) compare the ranking method and the percentage method season by season, and determine which is more aligned with audience voting; (ii) examine specific controversial cases (e.g., Jerry Rice in Season 2, Billy Ray Cyrus in Season 4, Bristol Palin in Season 11, Bobby Bones in Season 27); (iii) evaluate how adding a judge-selected bottom-two elimination changes outcomes and recommend which method to use in future seasons.
-    \item \textbf{Task 3.} Build a model based on judges' scores, Task 1 inferences, and historical eliminations to evaluate how professional dancers and celebrity attributes (profession, age, industry, and other features) affect outcomes, and compare whether effects are consistent between judges' scores and fan votes.
-    \item \textbf{Task 4.} Propose a fairer scoring and elimination system, and justify it with analysis and evidence.
+    \setlength{\parsep}{0ex}
+    \setlength{\topsep}{2ex}
+    \setlength{\itemsep}{1ex}
+    \item \textbf{Task 1.} One-sentence restatement of sub-question 1.
+    \item \textbf{Task 2.} One-sentence restatement of sub-question 2.
+    \item \textbf{Task 3.} One-sentence restatement of sub-question 3.
+    \item \textbf{Task 4.} One-sentence restatement of sub-question 4 (if any).
 \end{itemize}
 
 \subsection{Our Work}
-Judges' scores are effectively on a 10-point scale (with a few values exceeding 10), whereas fan votes can be in the tens or hundreds. Moreover, the ranking and percentage methods operate on different scales. To create a unified basis for analysis, we normalize judges' scores and fan votes within each season-week, which both mitigates outliers (e.g., scores above 10) and places the two sources on a comparable scale.
+% PLACEHOLDER — one paragraph per sub-question, with method and headline result.
+% Reference figures via \Cref{fig:...}; figures themselves live in img/.
+Our-work summary goes here.
 
-Figure \Cref{fig:model_flowchart} provides an overview of our end-to-end workflow, from fan-vote reconstruction through rule comparison to feature-based interpretation.
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.88\textwidth]{model-flowchart.png}
-    \caption{Model workflow from fan-vote inference to rule comparison and feature interpretation.}
-    \label{fig:model_flowchart}
-\end{figure}
+% Optional: insert the model flowchart figure once it exists in img/
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=0.88\textwidth]{fig-model-flowchart.pdf}
+%     \caption{End-to-end framework.}
+%     \label{fig:model-flowchart}
+% \end{figure}
 
-For Task 1, we formulate an inverse problem: infer latent fan votes that reproduce observed eliminations. We construct normalized score functions for the ranking and percentage methods, impose elimination-consistency constraints, and optimize a loss function in the fan-vote direction. We report elimination-consistency and cross-week stability indices to keep the inferred votes within a realistic range, and we quantify uncertainty by measuring how sensitive eliminations are to feasible vote perturbations.
-
-For Task 2, we apply both combination rules to every season, compare elimination sets, and quantify which rule better aligns with inferred fan preferences. We then analyze the historical controversies highlighted in the statement and run a counterfactual with a judge-selected bottom-two elimination. These results support our recommendation on which method to adopt going forward and under what conditions a judge save should be applied.
-
-For Task 3, we adapt a multi-head attention (QKV) mechanism to simulate how judges and viewers weight contestant attributes. We perform ablation studies with static feature encoding and semantically enriched feature encoding to validate the attention mechanism. To counter limited data, we orthogonally initialize the Query matrix and introduce a head-diversity penalty. We then analyze the \(\mathrm{softmax}(QK^T)\) weights to interpret feature contributions. Despite regularization (weight decay, cosine annealing) and reduced head dimensions, some overfitting risk remains due to the small sample size.
-
-For Task 4, our analysis suggests the percentage method better reflects audience preference in most weeks, but audience subjectivity intensifies late in the season. We therefore propose a hybrid rule: retain percentage-based aggregation early, and introduce a judge-selected bottom-three elimination starting at mid-season (e.g., Week 7 in a 14-week season, or more generally the first week after the midpoint) to balance professional assessment with audience sentiment.
-\par
-Tasks 1--2 rely exclusively on the official dataset \texttt{2026\_MCM\_Problem\_C\_Data.csv}. Task 3 augments this with external data (Wikidata and IMDb) to construct demographic and popularity features, with all sources documented below.
-
-%--------------------------------假设部分较复杂的无序列表
+%--------------------------------- Assumptions
 \section{Assumptions and Explanations}
+% PLACEHOLDER — auto-mm-writing reads stage1_modeling/assumptions.md and
+% renders the numbered list here. Every assumption has Justification + Affects + If-wrong.
 \begin{enumerate}[\bfseries \textit{Assumption} 1:]
-	\item \textbf{Judges are more objective, while fan voting is more subjective.}\\
-	\textbf{\textit{Explanation:}} Judges evaluate technical quality such as timing, posture, and coordination, whereas fans may vote based on popularity, charisma, or narrative appeal. This aligns with the problem statement's distinction between technical scores and audience preference.
-	\item \textbf{Perceived improvement can shift both judges' scores and fan votes.}\\
-	\textbf{\textit{Explanation:}} Over a season, contestants often improve. A visible progression from awkward early performances to confident routines can create an ``encouragement effect,'' raising judges' evaluations and fan support beyond what a single-week performance would predict.
-	\item \textbf{Statistical correlations may not imply causal mechanisms.}\\
-	\textbf{\textit{Explanation:}} As with classic confounding examples, a learned association can reflect an underlying factor rather than a direct cause. The attention-based model may capture strong statistical regularities; we therefore interpret feature attributions cautiously and emphasize plausibility checks.
-	\item \textbf{Late-season pressure amplifies emotional voting.}\\
-	\textbf{\textit{Explanation:}} As the field narrows and stakes rise, fan engagement intensifies. This can increase volatility in audience voting, especially near semifinals and finals.
+    \item \textbf{Assumption 1 — one-line claim.}\\
+    \textbf{\textit{Explanation:}} 1-3 sentence justification with citation or data evidence.
+    \item \textbf{Assumption 2 — ...}\\
+    \textbf{\textit{Explanation:}} ...
 \end{enumerate}
 
-\section{Notations}
-Some important mathematical notations used in this paper are listed in \Cref{tb:notations}. 
-%上部对于table的处理使用了交叉引用可以实时更改序号
-\renewcommand{\arraystretch}{1.2}
-\setlength{\tabcolsep}{4pt}
-\begin{longtable}{>{\centering\arraybackslash}m{2.2cm} >{\raggedright\arraybackslash}m{10.0cm} >{\centering\arraybackslash}m{1.2cm}}
-\caption{Notations used in this paper}\label{tb:notations}\\
-\toprule[2pt] %三线表顶端线宽度
-\textbf{Symbol} & \centering\textbf{Description} & \textbf{Units}\\
-\midrule
-\endfirsthead
-\toprule[2pt]
-\textbf{Symbol} & \centering\textbf{Description} & \textbf{Units}\\
-\midrule
-\endhead
-$s,t$ & Season index $s$ and week index $t$ & / \\
-$C_{s,t}$ & Set of contestants still competing in season $s$, week $t$ & / \\
-$E_{s,t}$ & Set of contestants eliminated in season $s$, week $t$ & / \\
-$k_{s,t}$ & Number of eliminations in season $s$, week $t$ & / \\
-$N_{s,t}$ & Number of contestants in $C_{s,t}$ & / \\
-$\tilde V_{i,s,t}$ & Normalized fan vote share of contestant $i$ & / \\
-$\tilde J_{i,s,t}$ & Normalized judges' score share of contestant $i$ & / \\
-$S_{i,s,t}$ & Combined score of contestant $i$ in season $s$, week $t$ & / \\
-$\alpha_s$ & Weight on judges' scores in season $s$ & / \\
-$\tau$ & Uncertainty temperature in the loss function & / \\
-$F_J,F_V$ & Normalized components from judges and fans in a rule & / \\
-$R^J_{i,s,t} / R^V_{i,s,t}$ & Rank of contestant $i$ by judges/fans (1 is best) & / \\
-\makecell{$\widehat E^{pct}_{s,t}$} & Eliminated set under percentage rule & / \\
-\makecell{$\widehat E^{rank}_{s,t}$} & Eliminated set under rank rule & / \\
-$D_{s,t}$ & Indicator of disagreement between rules in week $t$ & / \\
-$DR_s$ & Season-level disagreement rate & / \\
-$\overline V^{pct}_{s,t},\overline V^{rank}_{s,t}$ & Mean fan support of eliminated sets (pct / rank) & / \\
-$A_{s,t}$ & Indicator that percentage rule is more audience-aligned & / \\
-$AR_s$ & Season-level audience-alignment rate on disagreement weeks & / \\
-$\Delta_{i,s,t}$ & Vote-score gap $\tilde V_{i,s,t}-\tilde J_{i,s,t}$ & / \\
-$G_{i,s,t}$ & Rank gap: $R^J_{i,s,t}-R^V_{i,s,t}$ & / \\
-$Controversy_{i,s}$ & Median rank-gap measure for contestant $i$ & / \\
-$B_{s,t}$ & Bottom-two set by combined score & / \\
-$\widehat e^{save}_{s,t}$ & Eliminated contestant under judge-save rule & / \\
-$L$ & Elimination-consistency rate across all elimination weeks & / \\
-$T, T_s$ & Sets of elimination weeks overall / in season $s$ & / \\
-$P_i$ & Cross-week vote stability index for contestant $i$ & / \\
-$W_i$ & Number of weeks contestant $i$ competes & / \\
-$\lambda$ & Regularization weight in no-elimination weeks & / \\
-$N, T, H, d$ & Number of contestants, tokens, heads, and embedding dimension & / \\
-$\mathbf{X} \in \mathbb{R}^{T \times d}$ & Token embedding matrix & / \\
-$\mathbf{Q} \in \mathbb{R}^{H \times d}$ & Learnable query prototypes & / \\
-$\mathbf{W}_K, \mathbf{W}_V$ & Key/Value projection matrices & / \\
-$\mathbf{A} \in \mathbb{R}^{H \times T}$ & Attention weights & / \\
-$\tau, \gamma$ & Temperature and logit scale (attention) & / \\
-$\hat{y}^{\text{judge}}, \hat{y}^{\text{fan}}$ & Predicted judges' and fan scores & / \\
-\makecell{$\lambda_{\text{orth}}, \lambda_{\text{div}},$\\$\lambda_{\text{head}}, \lambda_{\text{decov}}$} & Regularization coefficients & / \\
-$\mathcal{L}_{\text{total}}$ & Total loss & / \\
-\bottomrule[2pt]
-\end{longtable}
-\setlength{\tabcolsep}{6pt}
-\renewcommand{\arraystretch}{1.0}
-
-\section{Model Preparation}
-\subsection{Data Overview}
-The official dataset \texttt{2026\_MCM\_Problem\_C\_Data.csv} contains contestant information, weekly judges' scores, eliminations, and final placements for Seasons 1--34. Tasks 1--2 are based entirely on this file. For Task 3, we enrich each celebrity with external demographic and popularity features to better explain fan and judge responses.
-
-\subsubsection{Data Sources}
-All external data are public and documented in \Cref{tb:data_source}. We use Wikidata to standardize demographic metadata, Wikipedia Pageviews to measure preseason popularity, and IMDb public datasets to quantify career visibility. These sources are merged into a single feature table keyed by celebrity name and identifiers.
-
+%--------------------------------- Notation
+\section{Notation}
+% PLACEHOLDER — auto-mm-writing reads stage1_modeling/notation.md and renders
+% the single consolidated symbol table. Sets / Parameters / Decision variables /
+% Auxiliary variables / Functions.
 \begin{table}[H]
     \centering
-    \small
-    \caption{Data sources for Tasks 1--3}\label{tb:data_source}
-    \begin{tabularx}{\textwidth}{l X}
-    \toprule[2pt]
-    \textbf{Source} & \textbf{Access} \\
-    \midrule
-    MCM official data & \texttt{2026\_MCM\_Problem\_C\_Data.csv} \\
-    Wikidata & \url{https://query.wikidata.org/sparql} \\
-    IMDb datasets & \url{https://datasets.imdbws.com/} \\
-    Feature merge & -- \\
-    \bottomrule[2pt]
-    \end{tabularx}
-\end{table}
-
-\subsubsection{External Data Construction (Task 3)}
-From Wikidata, we query birth date, gender, citizenship, occupations, IMDb ID, and the English Wikipedia title. From IMDb (name.basics, title.principals, and optional ratings), we derive total credits, acting credits, and aggregate rating/vote statistics. All external features are merged and aligned with the official dataset for Task 3.
-
-\subsubsection{Feature Engineering and Normalization}
-We normalize judges' scores and inferred fan votes within each season-week. For Task 3, numerical attributes are z-scored (age, partner score, industry skill, progress) and augmented with short-term lag statistics (mean/std/slope over the previous three weeks). Partner-level features (prior success, win rate, and fan mean) are added to capture professional influence.
-
-\subsubsection{Tokenization and Model Inputs (Task 3)}
-We encode each celebrity into attribute tokens. A static scheme uses five tokens (partner, industry, state, country, age), while a dynamic scheme uses seven tokens by adding progress and popularity signals. Categorical tokens are embedded via learned lookup tables and numeric tokens via linear projections into a shared 32-dimensional space, forming $\mathbf{X} \in \mathbb{R}^{T \times d}$.
-
-\subsubsection{Training Overview (Task 3)}
-We compress the training pipeline as follows: preprocess raw records, encode tokens, embed into $\mathbf{X}$, project to $\mathbf{K}$ and $\mathbf{V}$, initialize $\mathbf{Q}$ via ridge regression and K-means with orthogonalization, compute attention and context, and finally predict judge and fan scores. The total loss combines prediction MSE with attention diversity, Q-orthogonality, head-divergence, and decorrelation penalties.
-
-\subsection{Detailed Parameter Analysis}
-Key hyperparameters for Model 3 are summarized in \Cref{tb:parameter_analysis}.
-
-\begin{table}[H]
-    \centering
-    \small
-    \caption{Key hyperparameters for Model 3}\label{tb:parameter_analysis}
-    \begin{tabularx}{\textwidth}{l l c c X}
-    \toprule[2pt]
-    \textbf{Category} & \textbf{Parameter} & \textbf{Static} & \textbf{Dynamic} & \textbf{Description} \\
-    \midrule
-    Architecture & \texttt{d\_model} & 32 & 32 & Embedding dimension \\
-    Architecture & \texttt{n\_heads} & 4 & 4 & Number of attention heads \\
-    Attention & \texttt{temperature} & 0.15--0.25 & learnable & Softmax temperature \\
-    Attention & \texttt{temperature\_floor} & 0.05 & 0.05 & Temperature floor \\
-    Attention & \texttt{logit\_scale} & 1.0 & 1.0 & Logit scaling factor \\
-    Regularization & \texttt{lambda\_attn\_diversity} & 0.05 & 0.05 & Attention diversity penalty \\
-    Regularization & \texttt{lambda\_q\_orth} & 0.01 & 0.01 & Q orthogonality penalty \\
-    Regularization & \texttt{lambda\_head\_div} & 0.50 & 0.50 & Head JSD divergence penalty \\
-    Regularization & \texttt{lambda\_decov} & 0.02 & 0.02 & Decorrelation penalty \\
-    Training & \texttt{learning\_rate} & 1e-3 & 1e-3 & Learning rate \\
-    Training & \texttt{weight\_decay} & 1e-4 & 1e-4 & L2 weight decay \\
-    \bottomrule[2pt]
-    \end{tabularx}
+    \caption{Symbol table.}
+    \label{tab:notation}
+    \begin{tabular}{l l l}
+        \hline
+        Symbol & Description & Domain / Units \\
+        \hline
+        $\cdot$ & Placeholder & TBD \\
+        \hline
+    \end{tabular}
 \end{table}

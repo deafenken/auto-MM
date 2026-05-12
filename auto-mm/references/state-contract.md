@@ -18,10 +18,11 @@ runs/<run_slug>/
 │   ├── data/                      # raw attachment data: CSVs, Excel, images, etc.
 │   └── notices/                   # any clarifications, errata posted by organizers
 ├── stage0_triage/
+│   ├── contest_brief.md           # current-year contest facts (page limit, AI report rule, deadlines)
 │   ├── problems_index.md          # one-line summary of every problem (A/B/C/D)
 │   ├── data_recon.md              # what's in inputs/data/: row counts, fields, units, oddities
 │   ├── selection_scorecard.md     # the rubric scores for each candidate problem
-│   ├── problem_choice.md          # CHOSEN problem + 3-paragraph rationale
+│   ├── problem_choice.md          # CHOSEN problem + rationale
 │   └── hand_off.md
 ├── stage1_modeling/
 │   ├── problem_decomposition.md   # sub-questions Q1..Qk with I/O, hard/soft constraints, metric
@@ -33,26 +34,31 @@ runs/<run_slug>/
 │   └── hand_off.md
 ├── stage2_solving/
 │   ├── pipeline.py | pipeline.m   # entry script; reads inputs/data, writes outputs/
+│   ├── src/                       # supporting Python modules (data.py, model.py, solve.py, report.py, style.py)
 │   ├── runs/<exp_id>/             # one folder per experiment (baseline, main, ablation, sens)
 │   │   ├── config.yaml
 │   │   ├── result.json            # primary metrics
 │   │   ├── tables/                # CSV/Markdown
 │   │   └── log.txt
-│   ├── figures/                   # PDF vector figures, named by paper-section
-│   ├── validation.md              # baseline comparison, small-instance exact Gap, ablation
+│   ├── leaderboard.csv            # rolling: exp_id, primary metric, status (rebuilt from runs/*/result.json)
+│   ├── figures/                   # one subfolder per figure (see below) + the final <fig_id>.pdf next to it
+│   │   ├── <fig_id>/              # brief.md, prompt.md, source/, output.pdf, self_check.md, status
+│   │   └── <fig_id>.pdf           # the approved copy LaTeX references
+│   ├── validation.md              # baseline / exact-Gap / ablation / cross-method (≥3 of 4)
 │   ├── sensitivity.md             # parameter sweeps + insight bullets
 │   └── hand_off.md
 └── stage3_writing/
     ├── paper/                     # the LaTeX project (copied from template)
     │   ├── main.tex
+    │   ├── references.bib         # built from stage1_modeling/literature.md
     │   ├── img/                   # symlink or copy from stage2_solving/figures
     │   └── main.pdf               # build output
     ├── abstract_draft.md          # iterated drafts; final synced into paper/
     ├── section_checklist.md       # what's present / missing per required section
     ├── build_log.md               # xelatex output + grep results for warnings
-    ├── anonymity_report.md        # PDF text + metadata scan results
+    ├── anonymity_report.json      # PDF text + metadata scan results (machine-readable)
     ├── submission/
-    │   ├── 提交目录/ | submission/  # final flat tree to be zipped
+    │   ├── <root_name>/           # final flat tree to be zipped (e.g. team control number)
     │   └── submit.zip             # the artifact handed to the user
     └── hand_off.md
 ```
@@ -85,12 +91,13 @@ budget:
     writing: 24
     buffer: 6
   recompute_on_drift: true              # if a stage overruns, shrink later stages
+pause_offset_seconds: 0                 # accumulated PAUSE duration; budget-drift math excludes this
 chosen_problem: C | null                # null until Stage 0 finishes
 run_slug: mcm-2026-C
 supervisor:
   mode: claude-loop | shell-supervisor | manual
   poll_seconds: 1200
-  max_runtime_hours: null               # null = run until deadline or STOP
+  max_runtime_hours: null               # null = run until deadline or STOP (also read by supervisor.sh)
 ```
 
 ### `.heartbeat` (overwritten every tick — user can `cat` it without invoking agent)
@@ -114,10 +121,13 @@ supervisor:
 {"ts_utc":"2026-02-08T10:02:11Z","stage":"stage1","event":"model_committed","family":"MILP+ALNS"}
 {"ts_utc":"2026-02-08T15:45:00Z","stage":"stage2","event":"baseline_done","metric":0.7421}
 {"ts_utc":"2026-02-09T11:02:55Z","stage":"stage3","event":"abstract_first_draft"}
-{"ts_utc":"2026-02-09T18:30:01Z","stage":"stage3","event":"build_ok","pages":24}
+{"ts_utc":"2026-02-09T18:30:01Z","stage":"stage3","event":"paper_built","pages":24}
+{"ts_utc":"2026-02-09T19:05:00Z","stage":"stage3","event":"submission_packaged","zip_bytes":4823420}
 ```
 
 Resume protocol: read the **last** line per stage to know where to pick up. Always sort by `ts_utc` across stages.
+
+**Completion signals**: a run is "done" when the last `stage3` event is `paper_built` (build passed) or `submission_packaged` (zip ready). The supervisor and orchestrator both treat either as the terminal state and switch into incremental-improvement loop (or idle until deadline).
 
 ### `stage0_triage/problem_choice.md`
 
@@ -185,7 +195,7 @@ A complete model section must, at minimum, contain:
 | 结果 / Results | yes (with figures) | ✅ | part_2_model.tex |
 | 灵敏度 / Sensitivity | yes | ✅ | part_2_model.tex |
 | 模型评价 / Strengths & Weaknesses | yes | ✅ | part_3_conclusion.tex |
-| 参考文献 / References | yes (real, cited in body) | ✅ | main.bib |
+| 参考文献 / References | yes (real, cited in body) | ✅ | references.bib |
 | 附录 / Appendix | yes (code, long tables) | ✅ | part_4_Appendix.tex |
 ```
 
@@ -204,13 +214,23 @@ If any contract file is missing on resume, the orchestrator escalates to the use
 
 ## Hand-off file convention
 
-Every stage's `hand_off.md` answers exactly three questions, in three short paragraphs, in this order:
+Every stage's `hand_off.md` answers exactly three questions, in this fixed order, each under a top-level H2 heading. The body under each heading may use prose paragraphs OR bulleted lists OR both — what matters is the **three sections in order**, not the prose style.
 
-1. **What I did** — the new artifacts I wrote, with paths.
-2. **What's true now** — the facts the next stage should act on (problem, model family, headline number so far, hours remaining, blocking issues).
-3. **What you should do next** — concrete next action, framed as a directive to the next stage skill.
+```
+## What I did
+- bulleted list or short paragraph: artifacts written, with paths
 
-No prose-y narration. The next stage reads only `hand_off.md` + the structured files it lists.
+## What's true now
+- bulleted list or short paragraph: facts the next stage should act on
+  (problem, model family, headline number so far, hours remaining, blocking issues)
+
+## What you should do next
+- short paragraph or directive bullet: concrete next action for the next stage skill
+```
+
+Orchestrator's integrity gate verifies the presence of all three H2 sections (greppable via `grep -c '^## What' hand_off.md` — must equal 3) and that each section is non-empty. Style inside each section is left to the writing skill.
+
+The next stage reads only `hand_off.md` + the structured files it lists.
 
 ## Things this contract intentionally does NOT cover
 

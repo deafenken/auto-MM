@@ -99,4 +99,4 @@ The user's prior 数模 contest experience (华中杯 A 题 retrospective) was d
 - `auto-mm-writing/references/abstract-writing.md` — three-pass abstract protocol with hard-number floor.
 - `auto-mm-writing/references/submission-package.md` — macOS metadata filtering, supporting-material layout.
 
-The original retrospective is preserved at `README_数学建模比赛工作流.md` for reference; the references above are the actionable form. If a future contest produces new lessons, distill them back into these references — don't accumulate retrospective files.
+The original retrospective is a private document the user keeps locally (gitignored); the references above are the published, actionable form. If a future contest produces new lessons, distill them back into these references — don't accumulate retrospective files in the repo.

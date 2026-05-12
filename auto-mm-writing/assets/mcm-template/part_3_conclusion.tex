@@ -1,46 +1,40 @@
+% part_3_conclusion.tex — placeholder scaffold
+% auto-mm-writing populates from stage1_modeling/model.md "Known limitations"
+% and stage2_solving/validation.md.
+
 \section{Summary of Findings}
-We develop a unified analytical framework that infers hidden fan votes, compares aggregation rules, models feature effects on judges and fans, and proposes a fairer hybrid voting system for \textit{Dancing with the Stars}.
+% PLACEHOLDER — one paragraph restating the headline findings per sub-question.
+Summary of what was found.
 
 \subsection{Key Results}
 \begin{itemize}
-    \setlength{\parsep}{0ex}
-    \setlength{\topsep}{1ex}
-    \setlength{\itemsep}{0.8ex}
-    \item \textbf{Task 1 (Fan vote inference).} We reconstruct weekly fan vote shares by solving a constrained inverse problem that enforces elimination consistency and penalizes implausible week-to-week volatility. The model achieves 91\% elimination consistency across 34 seasons.
-    \item \textbf{Task 2 (Rule comparison).} Counterfactual simulations show that the percentage rule more frequently eliminates lower-vote contestants when the two rules disagree, implying stronger alignment with audience preference. Judge-save shifts outcomes toward technical evaluation, especially in controversy-prone seasons such as Season 27.
-    \item \textbf{Task 3 (Feature effects).} A dual-head attention model reveals that judges emphasize progress and partner skill, while fans respond more to popularity and identity cues. Semantic numeric features yield structured attention maps, while static categorical features produce diffuse patterns.
-    \item \textbf{Task 4 (Proposed system).} We propose a phased hybrid policy: percentage-based aggregation in early weeks, then judge-selected bottom-three elimination from mid-season onward. Counterfactual analysis shows this policy would have altered controversial outcomes in Season 27 and Season 11.
+    \item Headline result 1 (with hard number).
+    \item Headline result 2 (with hard number).
+    \item Headline result 3 (with hard number).
 \end{itemize}
 
-\section{Model Evaluation}
+\section{Strengths and Weaknesses}
+% PLACEHOLDER — honest discussion. Strengths the model can defend; weaknesses
+% the writing stage acknowledges (small-sample caveat, etc.).
+
 \subsection{Strengths}
 \begin{itemize}
-    \setlength{\parsep}{0ex}
-    \setlength{\topsep}{0.5ex}
-    \setlength{\itemsep}{0.5ex}
-    \item \textbf{Data fidelity.} Tasks 1--2 rely solely on the official dataset, avoiding unverifiable assumptions.
-    \item \textbf{Constraint-based inference.} Elimination-consistency constraints translate show rules directly into optimization.
-    \item \textbf{Interpretability.} The attention-based model provides a transparent mechanism to compare judge and fan emphasis.
-    \item \textbf{Actionable recommendations.} Task 4 translates findings into a concrete, implementable policy.
+    \item Strength 1.
+    \item Strength 2.
 \end{itemize}
 
-\subsection{Limitations}
+\subsection{Weaknesses}
 \begin{itemize}
-    \setlength{\parsep}{0ex}
-    \setlength{\topsep}{0.5ex}
-    \setlength{\itemsep}{0.5ex}
-    \item \textbf{Unobserved totals.} Fan vote totals are never disclosed; inference is limited to relative shares.
-    \item \textbf{Rule-invariance assumption.} We assume fan support is unchanged under alternative rules.
-    \item \textbf{Small-sample risks.} Attention patterns are best interpreted as statistical tendencies rather than causal effects.
-    \item \textbf{External data coverage.} Public metadata (Wikidata, IMDb) are incomplete for some celebrities.
+    \item Weakness / limitation 1.
+    \item Weakness / limitation 2.
 \end{itemize}
 
-\subsection{Further Discussion}
-Future work could incorporate viewer engagement data (social media activity, real-time voting patterns) to refine fan vote inference. Alternative aggregation schemes---such as Borda count or approval voting---could be evaluated within our framework. Behavioral experiments could test whether audiences perceive the proposed hybrid policy as fairer.
+\section{Future Work}
+% Optional. Most contest papers can omit or keep this brief.
+Brief paragraph on natural extensions.
 
-\section{Conclusion}
-This paper presents a unified analytical framework for understanding the hidden dynamics of \textit{Dancing with the Stars}, addressing fan vote inference, rule comparison, feature effects, and voting system design.
-
-Our constraint-based inverse optimization achieves 91\% elimination consistency across 34 seasons, providing reliable estimates of latent fan votes. Counterfactual simulations reveal that the percentage rule better preserves audience preferences, while the rank rule compresses vote differences and can eliminate fan favorites. The multi-head attention model uncovers systematic differences in how judges and fans weight contestant attributes---judges emphasize technical progress and partner skill, while fans respond to popularity and regional identity.
-
-Our framework offers DWTS producers a transparent, data-driven lens for understanding past controversies and designing future rules. The proposed phased hybrid policy---percentage aggregation in early weeks to honor fan engagement, followed by judge-selected bottom-three elimination from mid-season onward---balances the competing demands of audience engagement and technical integrity, respecting the show's dual identity as both a dance competition and a popularity contest.
+%--------------------------------- References
+% auto-mm-writing emits references.bib from stage1_modeling/literature.md.
+% Bibliography style provided by easymcm2.sty.
+\bibliographystyle{plain}
+\bibliography{references}

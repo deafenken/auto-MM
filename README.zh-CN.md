@@ -1,6 +1,6 @@
 # auto-mm — 数学建模比赛自动化 Skill 套件
 
-一组用于 Claude Code 的 skill，用一个提示词把数学建模比赛从「拿到题面」推进到「打包好的 `submit.zip`」，全程 72-96 小时不掉线。覆盖 **MCM/ICM（美赛）** 和 **CUMCM（国赛）** 两大主线，同时通过自定义 profile 支持华中杯 / 妈杯 / 数维杯 / 校赛等衍生赛事。
+一组用于 Claude Code 的 skill，用一个提示词把数学建模比赛从「拿到题面」推进到「打包好的 `submit.zip`」，全程 72-96 小时不掉线。内置两套 contest profile：**MCM/ICM（美赛）** 自带 EasyMCM2 LaTeX 占位 scaffold；**CUMCM（国赛）** 支持但需要自带模板 —— 高教社模板年年变、license 不统一，用户首次启动时把当年官方模板丢到 `auto-mm-writing/assets/cumcm-template/` 即可。华中杯 / 妈杯 / 数维杯 / 校赛等衍生赛事按"就近继承"处理。
 
 ## 这是什么
 
@@ -132,7 +132,7 @@ runs/<run_slug>/
 
 ## 从过往比赛沉淀的踩坑
 
-`README_数学建模比赛工作流.md`（华中杯 A 题复盘）已经被拆解成可执行的 reference：
+作者过往一次 华中杯 A 题复盘（私有文档，不入仓库）已经被拆解成可执行的 reference：
 
 - `auto-mm-modeling/references/pitfalls-from-experience.md` — 14 条具名踩坑 P1-P14。
 - `auto-mm-solving/references/figure-quality.md` — 图表设计原则（无图内标题、PDF 矢量、克制配色）。
@@ -148,7 +148,6 @@ runs/<run_slug>/
 auto-MM/
 ├── README.md  README.en.md  README.zh-CN.md
 ├── CLAUDE.md  .gitignore
-├── README_数学建模比赛工作流.md     # 用户的华中杯复盘（原文保留）
 ├── auto-mm/                       # 总调度
 │   ├── SKILL.md
 │   ├── agents/openai.yaml
@@ -182,6 +181,9 @@ auto-MM/
 │   ├── assets/figure_style.py
 │   └── references/
 │       ├── algorithm-selection.md
+│       ├── figure-workflow.md
+│       ├── figure-brief-template.md
+│       ├── figure-prompt-patterns.md
 │       ├── figure-quality.md
 │       ├── sensitivity-analysis.md
 │       └── validation-protocol.md
@@ -189,8 +191,10 @@ auto-MM/
     ├── SKILL.md
     ├── agents/openai.yaml
     ├── assets/
-    │   ├── mcm-template/          # EasyMCM2 (原 Template.zip 解压)
-    │   └── cumcm-template/        # 占位：用户首次启动时丢入年度模板
+    │   ├── mcm-template/          # EasyMCM2 占位 scaffold（DWTS 示例已清空）
+    │   ├── cumcm-template/        # 占位：用户首次启动时丢入年度模板
+    │   ├── anonymity_scan.py      # PDF + .tex/.bib 匿名扫描器
+    │   └── build.sh               # xelatex 两遍编译 + 结构化日志
     └── references/
         ├── abstract-writing.md
         ├── section-checklist.md

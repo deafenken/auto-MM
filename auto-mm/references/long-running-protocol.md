@@ -23,7 +23,8 @@ A 数模 run lives longer than any single Claude Code conversation. The agent pr
    - stage0 done, model not committed → resume stage1_modeling
    - model committed, solving incomplete → resume stage2_solving
    - solving has main result, writing incomplete → resume stage3_writing
-   - all stages have a hand_off and writing is "build_ok" → loop body: incremental improvement
+   - all stages have a hand_off and the last stage3 event is one of
+     {paper_built, submission_packaged} → loop body: incremental improvement
 7. Heartbeat every 60s while running. Final heartbeat at clean exit with stage="idle".
 ```
 
@@ -45,8 +46,19 @@ User can `cat runs/<slug>/.heartbeat` any time without interfering with the run.
 ## STOP and PAUSE semantics
 
 - `touch STOP` — clean exit at next micro-step boundary. The supervisor sees STOP and does not re-invoke. To resume, `rm STOP`.
-- `touch PAUSE` — finish current micro-step, then idle. Time budget ticking freezes (see `time-budget.md`). To resume, `rm PAUSE`.
+- `touch PAUSE` — finish current micro-step, then idle. Time-budget accounting freezes for the duration of the pause; the absolute `deadline_utc` itself does NOT move (the contest deadline is fixed by the organizer, and we don't get to negotiate it). To resume, `rm PAUSE`.
 - Both files honored at the top of every micro-step. Never inside a long inner loop — the inner loop must check periodically (every minute) if running >60s.
+
+### How budget freezing reconciles with `deadline_utc - now`
+
+`run.yaml` carries a `pause_offset_seconds: <int>` field (default 0). On entering PAUSE, the orchestrator records the timestamp; on exit, it adds the paused duration to `pause_offset_seconds` and writes a `progress.jsonl` event `paused_for_seconds: <N>`.
+
+Two quantities now coexist honestly:
+
+- **Hard time remaining**: `deadline_utc - now` (real wall clock; what the contest organizer cares about). This is the source of truth for *whether* the run can still ship.
+- **Effective budget used**: `(now - run.yaml.created_at_utc) - pause_offset_seconds`. This is the source of truth for *budget-drift alarms* per `time-budget.md`.
+
+When the two diverge significantly (e.g., user paused 8 hours of a 96h contest), the orchestrator surfaces both in its status print: "real time remaining: 56h; effective budget used: 32h / 96h." The user pauses at their own risk — the hard clock keeps moving toward `deadline_utc`.
 
 ## Supervisor modes
 

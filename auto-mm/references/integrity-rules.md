@@ -6,7 +6,7 @@ These are the rules that override convenience, speed, and even the user's in-the
 
 If the problem statement says X and a derivation, a clever simplification, or an external source says Y, the paper uses X. Disagreement is recorded in `stage1_modeling/assumptions.md` with an explicit "we adopt the problem-statement value of X; we treat Y as a sensitivity case." Never silently substitute.
 
-This is the most common high-impact mistake. The 华中杯 A 题 retrospective (`README_数学建模比赛工作流.md` §2) calls this out specifically: "30 个绿色区客户" vs "10 km 半径" disagreement → main model follows the problem statement's customer count, the radius case becomes sensitivity analysis.
+This is the most common high-impact mistake. A specific 华中杯 A 题 instance: the problem statement said "30 customers in the green zone" while a geometric reading of the map gave a 10 km radius containing ~25 customers. Main model honors the 30-customer wording; the radius case goes into sensitivity analysis.
 
 ## Rule 2 — Anonymity is absolute
 
@@ -31,7 +31,9 @@ This is the §6 lesson from the experience README. The orchestrator pings this r
 
 ## Rule 5 — Algorithms must be justified by problem structure
 
-Stacking SA + TS + GA + DRL without explaining what each component handles is a red flag, not a strength. `stage1_modeling/candidates.md` must list (algorithm) → (specific problem feature it addresses). The orchestrator rejects a `model.md` that names ≥3 metaheuristics without per-component justification.
+Stacking SA + TS + GA + DRL without explaining what each component handles is a red flag, not a strength. `stage1_modeling/candidates.md` must list (algorithm) → (specific problem feature it addresses) AND must end with a line `integrity_check: ok` once the modeling skill has confirmed Rule 4 + Rule 5 compliance for the chosen candidate (see `auto-mm-modeling/SKILL.md` Step 5).
+
+The orchestrator's gate inspects `candidates.md` for the `integrity_check: ok` line before allowing stage 1 → stage 2. Absence of the line, or `integrity_check: failed`, blocks the hand-off.
 
 When in doubt: smaller hammer, stronger ablation.
 
@@ -47,7 +49,7 @@ is treated as incomplete. The writing stage will refuse to advertise headline nu
 
 ## Rule 7 — Time budget is a hard constraint
 
-Stage budgets in `run.yaml.budget.per_stage_hours` are not aspirational. When a stage exceeds its budget by >20%, the orchestrator opens an escalation block in `recommendations.md` and asks the user whether to (a) cut scope, (b) re-allocate from a later stage, or (c) extend total budget. The default action on no-response is **cut scope of the current stage**, because writing time is the most unrecoverable.
+Stage budgets in `run.yaml.budget.per_stage_hours` are not aspirational. When a stage exceeds its budget by >20%, the orchestrator opens an escalation block (`## ESCALATION — budget_overrun`) inside the current stage's `hand_off.md` per `escalation-policy.md`, and asks the user whether to (a) cut scope, (b) re-allocate from a later stage, or (c) extend total budget. The default action on no-response is **cut scope of the current stage**, because writing time is the most unrecoverable.
 
 The final 6 hours before deadline switch into **lockdown mode** — no new modeling, no new experiments, only writing, building, checking, and packaging. This rule overrides any user request for new analysis in the final 6 hours unless the user explicitly types "override lockdown."
 

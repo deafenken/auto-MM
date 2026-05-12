@@ -1,6 +1,14 @@
-# CUMCM (国赛) LaTeX template — placeholder
+# CUMCM (国赛) LaTeX template — REQUIRED but not bundled
 
-This directory is a placeholder for the 高教社官方 CUMCM template. The official template is distributed by 高教社 each year; license terms vary, so we do not bundle a copy.
+This directory is intentionally a placeholder. The CUMCM template is **NOT bundled** with this skill because:
+
+1. The official template changes year to year (新的题号样式、字体、页边距).
+2. License terms vary by distribution channel; bundling risks shipping something the team is not allowed to use.
+
+**First-invocation behavior**: if `run.yaml.contest.family == "cumcm"` and this directory contains only this README (no `.tex` file), `auto-mm-writing` will block at Step 1 (template copy) with the message:
+> "CUMCM template missing. Drop the year's official template files into `auto-mm-writing/assets/cumcm-template/` (or unzip a template archive into that folder), then re-invoke."
+
+Stage 3 cannot proceed without the template.
 
 ## Where to get the template
 

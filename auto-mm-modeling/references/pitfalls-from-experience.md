@@ -1,6 +1,6 @@
 # Pitfalls from experience — lessons encoded as do/don't rules
 
-Distilled from `README_数学建模比赛工作流.md` (华中杯 A 题 retro). These are non-trivial mistakes the user has already paid for. Every modeling decision should be cross-checked against this file.
+Distilled from the author's past 华中杯 A 题 retrospective (kept locally, not in this repo). These are non-trivial mistakes the user has already paid for. Every modeling decision should be cross-checked against this file.
 
 ## P1 — Problem statement wins over geometric/intuitive simplification
 

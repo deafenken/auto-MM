@@ -121,10 +121,11 @@ for f in stage3_writing/paper/img/*.pdf stage3_writing/paper/img/*.png; do
   fi
 done
 
-# every \label{fig:...} is \ref{fig:...}ed
+# every \label{fig:...} is \ref{fig:...}-ed or \Cref{fig:...}-ed
 grep -hoE '\\label\{fig:[^}]+\}' stage3_writing/paper/*.tex | sort -u | \
   awk -F'[{}]' '{print $2}' | while read label; do
-    if ! grep -q "\\\\(c|C)?ref\\{$label\\}" stage3_writing/paper/*.tex; then
+    # use -E (extended regex) and match \ref / \cref / \Cref / \autoref / \pageref
+    if ! grep -qE "\\\\(c|C)?ref\{${label}\}|\\\\autoref\{${label}\}|\\\\pageref\{${label}\}" stage3_writing/paper/*.tex; then
       echo "ORPHAN LABEL: $label"
     fi
   done

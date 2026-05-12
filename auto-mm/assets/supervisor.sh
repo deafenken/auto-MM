@@ -62,6 +62,13 @@ if [[ -z "$POLL_SECONDS" ]]; then
     POLL_SECONDS=$(awk '/poll_seconds:/ {print $2; exit}' "$RUN_DIR/run.yaml" 2>/dev/null || echo "1200")
 fi
 
+# Pull max_runtime_hours from run.yaml.supervisor.max_runtime_hours if not overridden
+if [[ -z "$MAX_RUNTIME_HOURS" ]]; then
+    MAX_RUNTIME_HOURS=$(awk '/max_runtime_hours:/ {print $2; exit}' "$RUN_DIR/run.yaml" 2>/dev/null || true)
+    # awk returns "null" for explicit YAML null — treat as unset
+    [[ "$MAX_RUNTIME_HOURS" == "null" ]] && MAX_RUNTIME_HOURS=""
+fi
+
 # Default invoke command — adjust to your local Claude Code CLI if different
 if [[ -z "$INVOKE_CMD" ]]; then
     INVOKE_CMD="claude --print --dangerously-skip-permissions \"/auto-mm resume ${SLUG}\""

@@ -112,9 +112,18 @@ About to set up the run. I need:
     - manual           (you invoke me each cycle)
     - claude-loop      (use /loop inside Claude Code)
     - shell-supervisor (assets/supervisor.sh outside Claude)
+
+[CUMCM / 国赛 ONLY — extra question]
+(g) The CUMCM LaTeX template is NOT bundled with this skill (年度模板会变，
+    license 不统一 — bundling 会过时). Either:
+    - Drop the year's official template files into
+      auto-mm-writing/assets/cumcm-template/ now, OR
+    - Tell me where the template zip is and I'll unzip it for you, OR
+    - Confirm that you'll provide it before Stage 3 starts (writing will
+      block at template-copy step until it's there).
 ```
 
-Validate: contest family known, deadline > now, problem set non-empty.
+Validate: contest family known, deadline > now, problem set non-empty. For CUMCM, also validate that `auto-mm-writing/assets/cumcm-template/` contains at least one `.tex` file before declaring first-invocation done; if not, log `awaiting_cumcm_template` and exit.
 
 Compute provisional `run_slug = <family>-<year>-untriaged`. After Stage 0 commits a problem, slug becomes `<family>-<year>-<problem>` and the directory is renamed atomically (`mv -n`).
 

@@ -80,6 +80,17 @@ if __name__ == "__main__":
 
 The skill writes the supporting `src/data.py`, `src/model.py`, `src/solve.py`, `src/report.py` per the chosen model family. See `references/algorithm-selection.md` for which solver wrappers to import.
 
+It also seeds `src/style.py` and `src/__init__.py` so plotting scripts can `from src.style import PALETTE, apply_style`:
+
+```bash
+mkdir -p stage2_solving/src
+touch stage2_solving/src/__init__.py
+# style.py is a thin re-export from the bundled figure_style.py
+cp auto-mm-solving/assets/figure_style.py stage2_solving/src/style.py
+```
+
+This satisfies the import contract in `figure-prompt-patterns.md`. If the user prefers a single source of truth, they may instead symlink `src/style.py` → `auto-mm-solving/assets/figure_style.py`.
+
 ### 2. Run the required experiment matrix
 
 Minimum five runs per Rule 6:
@@ -98,7 +109,9 @@ If an experiment cannot be completed within its budget allocation, write a "inco
 
 ### 3. Validate (`validation.md`)
 
-After main + exact-small + ablation runs are done, write `validation.md`:
+Per `references/validation-protocol.md`, the gate requires **at least 3 of the 4** kinds of validation, with at least one being exact-Gap OR ablation. When the model is not amenable to exact-Gap (inference, open-ended, very-large continuous), substitute with cross-method comparison.
+
+Write `validation.md`. Use any 3+ of the following subsections (skip the inapplicable ones with a one-line "N/A: <reason>"):
 
 ```markdown
 # Validation — <run_slug>
@@ -108,7 +121,7 @@ After main + exact-small + ablation runs are done, write `validation.md`:
 - Main (`main-vN`): primary metric = <value>.
 - Improvement: <absolute>, <relative %>.
 
-## Small-instance exact Gap
+## Small-instance exact Gap         <!-- include if model is amenable to exact solve -->
 - Exact solver: <Gurobi / CP-SAT / branch&bound>.
 - Instance size: <e.g. 12 customers, 8 nodes>.
 - Exact optimum: <value>.
@@ -120,9 +133,15 @@ After main + exact-small + ablation runs are done, write `validation.md`:
 - Without <feature>: <value>.
 - Marginal contribution: <absolute>, <relative %>.
 - Interpretation: <one paragraph on what this means for the model's claim>.
+
+## Cross-method comparison         <!-- substitute for exact Gap when N/A -->
+- Method A (well-known alternative): <metric>.
+- Method B (well-known alternative): <metric>.
+- Main: <metric>.
+- Interpretation: <one paragraph>.
 ```
 
-The orchestrator's gate checks for presence of all three subsections before allowing hand-off.
+The orchestrator's gate checks that **≥3 non-`N/A` subsections** are present, with **at least one of (Exact Gap, Ablation)** materialized. A run that only has Baseline + Sensitivity (no exact Gap, no ablation, no cross-method) fails the gate.
 
 ### 4. Sensitivity (`sensitivity.md`)
 
@@ -144,16 +163,36 @@ For each `to-sweep` assumption from `stage1_modeling/assumptions.md`:
 
 `references/sensitivity-analysis.md` has the recipe in more depth.
 
-### 5. Generate figures
+### 5. Generate figures (brief → prompt → generate → self-check)
 
-Following `references/figure-quality.md`:
+Every figure goes through the four-step workflow in `references/figure-workflow.md`. No exceptions, no shortcuts. The point is to make the figure's purpose explicit before any pixels and to catch mechanical style-rule violations before the writing stage.
 
-- Save every figure as PDF vector under `figures/`.
-- Use a restrained palette (the experience README §7 calls out AI-flavored high-saturation gradients as a tell).
-- No in-figure title — the caption is the title.
-- Every figure must be referenced from the paper, so name them by intended section: `fig-data-flow.pdf`, `fig-route-map.pdf`, `fig-convergence.pdf`, `fig-sens-carbon.pdf`, etc.
+Per-figure folder layout (the contract):
 
-`assets/figure_style.py` provides a matplotlib RC and helpers — import it at the top of every plotting script.
+```
+stage2_solving/figures/
+└── <fig_id>/                          # e.g. fig-route-map
+    ├── brief.md                       # Step 1: information document (figure-brief-template.md)
+    ├── prompt.md                      # Step 2: generation prompt (figure-prompt-patterns.md)
+    ├── source/                        # Step 3: plot.py | tikz.tex | image_request.json
+    ├── output.pdf                     # final artifact
+    ├── self_check.md                  # Step 4: style-rule audit
+    └── status                         # draft | needs_revision | ready
+
+# after Step 4 passes, a copy lands at:
+└── <fig_id>.pdf                       # the path LaTeX uses via \includegraphics{img/<fig_id>.pdf}
+```
+
+Workflow per figure:
+
+1. Write `brief.md` (Step 1) using the template in `figure-brief-template.md`. The brief's one-sentence claim is the anchor for everything else.
+2. Build `prompt.md` (Step 2) from the brief, picking the right pattern in `figure-prompt-patterns.md`: matplotlib code, TikZ code, or image-gen.
+3. Run the generator (Step 3); snapshot `data_used.csv` for data figures so the result is reproducible.
+4. Self-check (Step 4) against `figure-quality.md` rules. If `ready`, copy `output.pdf` to `figures/<fig_id>.pdf`. If `needs_revision`, edit `prompt.md` (not `brief.md`) and re-run. Cap at 3 iterations per figure; on the 4th, escalate.
+
+`assets/figure_style.py` provides the matplotlib RC and the PALETTE. The figure-prompt patterns require scripts to import it as `from src.style import PALETTE, apply_style`, so Stage 2 also seeds a `src/style.py` that re-exports from `figure_style.py` (the pipeline-scaffolding step does this; see Step 1 above).
+
+The orchestrator's hand-off gate refuses to advance to Stage 3 if any `figures/<fig_id>/status` is anything other than `ready` (or `dropped` with a logged reason in `self_check.md`).
 
 ### 6. Write `hand_off.md`
 
@@ -221,7 +260,10 @@ The orchestrator monitors per-experiment wall time and aborts a run that exceeds
 | File | Load when |
 |---|---|
 | `references/algorithm-selection.md` | Step 1 — choosing the solver / heuristic wrapper |
-| `references/figure-quality.md` | Step 5 — every figure-generation pass |
+| `references/figure-workflow.md` | Step 5 — for every figure, the four-step pipeline |
+| `references/figure-brief-template.md` | Step 5.1 — writing each figure's brief |
+| `references/figure-prompt-patterns.md` | Step 5.2 — building each figure's prompt |
+| `references/figure-quality.md` | Step 5.4 — self-check against style rules; also for the orphan-label grep |
 | `references/sensitivity-analysis.md` | Step 4 — building sweep grids and writing insight |
 | `references/validation-protocol.md` | Step 3 — what counts as adequate validation per Rule 6 |
 | `auto-mm-modeling/references/pitfalls-from-experience.md` | Pitfall P10-P12 inform sensitivity and figure choices |

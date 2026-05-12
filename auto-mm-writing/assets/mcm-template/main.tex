@@ -5,8 +5,8 @@
 % \linespread{1.1} %可选：设置行间距1.1倍
 % 本模板不需要填写年份，以当前电脑时间自动生成
 % 请在以下的方括号中填写队伍控制号
-\usepackage[2603956]{easymcm2}  % 载入 EasyMCM 模板文件
-\problem{C}  % 请在此处填写题号
+\usepackage[CONTROL_NUMBER_PLACEHOLDER]{easymcm2}  % 载入 EasyMCM2；auto-mm-writing 启动时从 run.yaml.team.control_number 替换
+\problem{X}  % auto-mm-writing 会从 run.yaml.chosen_problem 替换
 % \usepackage{mathptmx}  % 这是 Times 字体，中规中矩 
 \usepackage{palatino}  % mathpazo 这palatino是 COMAP 官方杂志采用的更好看的 Palatino 字体，可替代以上的 mathptmx 宏包
 \usepackage{pdfpages}
@@ -156,7 +156,7 @@
 
 \input{new_command.tex} %载入新命令
 %\newcommand{\upcite}[1]{\textsuperscript{\textsuperscript{\cite{#1}}}} %
-\title{From Scores to Stars: Modeling Hidden Preferences \\ in Dancing With The Stars}  % 标题
+\title{Paper Title Placeholder \\ Replace with the actual title}  % auto-mm-writing 在 Step 3 用 run.yaml.chosen_title 替换
 
 % 如需要修改题头（默认为 MCM/ICM），请使用以下命令（此处修改为 MCM）
 %\renewcommand{\contest}{MCM}
@@ -165,21 +165,25 @@
 %--------------------------------------------文档开始
  \begin{document}
 
-% 此处填写摘要内容
+% 摘要内容 — auto-mm-writing 从 abstract_draft.md (最终 pass) 注入
 \begin{abstract}
 
-    We develop a unified analytical framework for \textit{Dancing with the Stars} that (i) infers latent fan vote shares via constrained inverse optimization with 91\% elimination consistency, (ii) compares rank-based and percentage-based aggregation rules through counterfactual season simulations, (iii) applies a multi-head attention mechanism (QKV) to reveal how judges and fans weight contestant attributes differently, and (iv) proposes a phased hybrid voting policy balancing audience engagement with technical credibility.
+    % ABSTRACT PLACEHOLDER — replaced by auto-mm-writing Step 5 (three-pass abstract).
+    % If you are reading this in a built PDF, the writing stage did not run.
+    % Each task's paragraph must contain hard numbers per Rule 9 of integrity-rules.md.
 
-    For \textbf{Task 1}, we construct normalized score functions for both the rank-based and percentage-based aggregation rules. By imposing elimination-consistency constraints, we design a loss function and perform gradient descent in the fan-vote direction to recover latent vote shares. Cross-week stability diagnostics ensure that inferred votes remain within realistic bounds---fan support typically evolves smoothly without extreme spikes (``going viral'') or collapses (``falling out of favor'').
+    Problem-type-and-overall-approach: one sentence stating what this paper does.
 
-    For \textbf{Task 2}, we apply both rules season-by-season to obtain two elimination sets, then take the symmetric difference to measure how each rule respects audience preferences. Within this difference set, we compute normalized fan votes and quantify the proportion of weeks in which the rank rule eliminates contestants with higher audience support than the percentage rule. The analysis shows the percentage rule more frequently retains high-vote contestants, indicating stronger alignment with audience preference. A Season~27 case study highlights the judge--fan tension emphasized in the problem statement.
+    For \textbf{Task 1}: one short paragraph with model, algorithm, and headline number.
 
-    For \textbf{Task 3}, we adapt a multi-head attention mechanism (QKV) to simulate how judges and fans weight contestant attributes. We conduct ablation experiments comparing static categorical encoding with semantically enriched numerical encoding, verifying that the attention mechanism captures meaningful patterns. To address limited data, we orthogonally initialize the Query matrix and introduce a head-diversity penalty to encourage differentiated attention heads. We then analyze the $\mathrm{softmax}(QK^\top)$ weights to interpret how each feature contributes to final scores. Despite regularization (weight decay, cosine annealing) and reduced head dimensions, some overfitting risk remains due to the small sample size, so results are interpreted as statistical tendencies rather than causal effects.
+    For \textbf{Task 2}: one short paragraph with model, algorithm, and headline number.
 
-    For \textbf{Task 4}, our analysis indicates that the percentage rule better reflects audience preference, but audience subjectivity intensifies as the competition progresses---late-season emotional voting becomes more pronounced. We therefore propose a hybrid policy: retain percentage-based aggregation in early weeks to honor fan engagement, and introduce a judge-selected bottom-three elimination starting at mid-season (Week~7 in a 14-week season, or generally the first week after the midpoint) to restore balance between professional assessment and audience sentiment.
+    For \textbf{Task 3}: one short paragraph with model, algorithm, and headline number.
+
+    Management / policy insight: one paragraph translating findings into a recommendation.
 
     \vspace{5pt}
-    \textbf{Keywords: DWTS; Fan Vote Inference; Rank vs Percentage; Judge-Save; Attention Model; Hybrid Policy}
+    \textbf{Keywords: Term1; Term2; Term3; Term4; Term5}
 
 \end{abstract}
 \maketitle  % 生成 Summary Sheet

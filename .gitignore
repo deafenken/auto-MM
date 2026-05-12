@@ -46,3 +46,7 @@ runs/
 
 # Original archive that was unpacked into auto-mm-writing/assets/mcm-template/
 Template.zip
+
+# Private retrospective — the source for pitfalls-from-experience.md etc.
+# Kept local for re-distillation; never published.
+README_数学建模比赛工作流.md

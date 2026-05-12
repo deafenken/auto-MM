@@ -1,6 +1,6 @@
 # auto-mm — Mathematical-Modeling Contest Automation Skill Suite
 
-A set of Claude Code skills that drive a mathematical-modeling contest from "we have a problem statement" all the way to a packaged `submit.zip`, surviving the full 72-96-hour window. Covers **MCM/ICM** (English, 96h) and **CUMCM** (Chinese national contest, 72h) as first-class profiles, with derivative profiles for 华中杯 / 妈杯 / 数维杯 / campus contests.
+A set of Claude Code skills that drive a mathematical-modeling contest from "we have a problem statement" all the way to a packaged `submit.zip`, surviving the full 72-96-hour window. Two contest profiles are wired in: **MCM/ICM** (English, 96h) ships with a bundled EasyMCM2 LaTeX scaffold; **CUMCM** (中文 national contest, 72h) is supported but bring-your-own-template — the 高教社 template changes year to year and license terms vary, so the user drops the year's official template into `auto-mm-writing/assets/cumcm-template/` at first invocation. Derivative profiles (华中杯 / 妈杯 / 数维杯 / campus contests) inherit from the closest match.
 
 ## What this is
 
@@ -136,7 +136,7 @@ The next stage **only reads** `hand_off.md` + the structured files it cites.
 
 ## Lessons distilled from past contests
 
-The user's 华中杯 A 题 retrospective (`README_数学建模比赛工作流.md`) was distilled into actionable references:
+The author's past 华中杯 A 题 retrospective (a private document, not in this repo) was distilled into actionable references:
 
 - `auto-mm-modeling/references/pitfalls-from-experience.md` — 14 named pitfalls P1-P14.
 - `auto-mm-solving/references/figure-quality.md` — figure design rules (no in-figure titles, PDF vectors, restrained palette).
@@ -144,7 +144,7 @@ The user's 华中杯 A 题 retrospective (`README_数学建模比赛工作流.md
 - `auto-mm-writing/references/abstract-writing.md` — three-pass abstract protocol with hard-number floor.
 - `auto-mm-writing/references/submission-package.md` — macOS metadata filtering, supporting-material layout.
 
-The retrospective is preserved at `README_数学建模比赛工作流.md`; the references above are the executable form. When a future contest produces new lessons, distill them back into these references — don't accumulate retrospectives.
+The retrospective itself is kept locally by the author (gitignored); the references above are the executable form. When a future contest produces new lessons, distill them back into these references — don't accumulate retrospectives.
 
 ## File layout
 
@@ -152,7 +152,6 @@ The retrospective is preserved at `README_数学建模比赛工作流.md`; the r
 auto-MM/
 ├── README.md  README.en.md  README.zh-CN.md
 ├── CLAUDE.md  .gitignore
-├── README_数学建模比赛工作流.md     # user's 华中杯 retrospective (preserved as-is)
 ├── auto-mm/                       # orchestrator
 │   ├── SKILL.md
 │   ├── agents/openai.yaml
@@ -186,6 +185,9 @@ auto-MM/
 │   ├── assets/figure_style.py
 │   └── references/
 │       ├── algorithm-selection.md
+│       ├── figure-workflow.md
+│       ├── figure-brief-template.md
+│       ├── figure-prompt-patterns.md
 │       ├── figure-quality.md
 │       ├── sensitivity-analysis.md
 │       └── validation-protocol.md
@@ -193,8 +195,10 @@ auto-MM/
     ├── SKILL.md
     ├── agents/openai.yaml
     ├── assets/
-    │   ├── mcm-template/          # EasyMCM2 (unpacked from Template.zip)
-    │   └── cumcm-template/        # placeholder — drop the year's template on first run
+    │   ├── mcm-template/          # EasyMCM2 placeholder scaffold (DWTS content stripped)
+    │   ├── cumcm-template/        # placeholder — drop the year's template on first run
+    │   ├── anonymity_scan.py      # PDF + .tex/.bib forbidden-pattern scanner
+    │   └── build.sh               # xelatex two-pass build with structured log
     └── references/
         ├── abstract-writing.md
         ├── section-checklist.md
